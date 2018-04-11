@@ -1,0 +1,1855 @@
+增加一种指令执行结果为格式错误
+#define ZXJG_GSCW -5 //指令格式错误，如指令内容为空
+增加一中应用运行状态为正在关闭
+#define RET_CLOSING 3 //3表示正在正常关闭，之后由监控管理应用检查关闭情况，确认关闭成功后，由其置为RET_NOTRUNNING
+用以下命令可以生成导出文件
+SELECT * FROM GJFW_YK_ZL INTO OUTFILE "/tmp/pytfile" FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"' LINES TERMINATED BY '\n';
+
+//应用数据清理
+AA FE 55 FE 00 FE FF 53 44 53 00 00 00 06 00 00 00 00 00 00 1E 01 02 07 00 00
+//注入文件通知
+AA FE 55 FE 00 FE FF 53 44 53 00 00 00 06 00 00 00 00 00 00 1E 01 02 09 00 00
+//预关机
+AA FE 55 FE 00 FE FF 53 44 53 00 00 00 06 00 00 00 00 00 00 1E FF 02 08 00 00
+//配置指令
+AA FE 55 FE 00 FE FF 53 44 53 00 00 00 06 00 00 00 00 00 00 1E 01 20 01 00 00
+
+修改日志：
+2017-5-21
+1、规范了输出
+2、不再直接引用mysql句柄，将其放入一个结构体中，结构体中再加入一个锁变量，方便引用前加锁
+3、规范mysql_store_result操作，必须调用mysql_free_result释放记录，否则占用内容持续增加
+4、对链接丢失问题，在connectDB中，调用mysql_init后调用mysql_options，将链接设为MYSQL_OPT_RECONNECT。网查说还需要用mysql_ping()检查链接情况并触发自动重链，但实际好像不需要那样做就能够解决问题。
+5、多个mysql操作一起做的时候回导致致命错误，将所有mysql_XX函数包装成self_mysql_XX函数，在操作mysql句柄前加锁。
+6、广播指令，执行完毕后也应该将其设置为已完成，否则每次重启都会执行这种指令。——也不行，其他应用就不会处理了。广播指令有问题。第一个重启的应用将其置为忽略。
+7、将main_loop_of_main_thread中，
+		length = recv(netsocket.client_sockfd,socketReadBuffer,ZL_MAX_LENGTH,0);
+	改为
+		length = recv(netsocket.client_sockfd,socketReadBuffer,ZL_MAX_LENGTH,MSG_DONTWAIT);
+
+2017-5-25
+1、将socket读改为非阻塞，解决了此问题——“预关机指令执行后，程序关不掉，又收到几个字节后就能关掉”
+2、设计了实时遥测双缓冲结构，遥测采集和遥测发送轮流使用2个缓冲，缓冲值暂未填充（todo）。socket发送尚未验证（todo），尚未加TCP应用层包头。
+3、修改了YK指令入库后debug读取的代码，当ZL_NR项为空时，不能用它给string类型变量初始化
+4、修改了YC在初始化延时遥测配置项链表结构之后做的Debug输出代码，不能将NUL指针做为整形printf
+5、修改了定时器机制，只在主线程保留一个500毫秒基础定时
+
+
+2017-5-31
+1、规范了所有函数的注释
+2、增加了一些编译开关，方便调试
+3、增加了一个全局变量，用于控制每个延时遥测周期所指的具体秒数
+4、将指令处理和指令数据接收都改为由全局定时器触发。
+5、增加了延时遥测配置项表的一个测试数据
+ update GJFW_YC_YSYCPZX set YSYCPZX_CJFF="select * from SELF_CKFW_ZT;" where YSYCPZX_CJZQ = 9;
+ 测试发现提示“ERR-C-Execute YSYC sql error 1290: The MySQL server is running with the --secure-file-priv option so it cannot execute this statement”
+ SELECT @@secure_file_priv;发现设置为NULL
+ 网查说需要设置my.cnf，从移动硬盘上copy来mysql的my.cnf,mac上安装Mysql Workbench，根据当前mysql的参数修改拷贝来的my.cnf，然后加上一行
+ secure-file-priv = /sqlexport/
+ 在／下新建一个文件夹sqlexport，使用sudo chmod 777 sqlexport，修改它的读写权限
+ 
+ 2017-6-1
+ 1、修改延时遥测采集函数，将从临时文件读取的字符串做一个加／的操作，然后入库成功。
+ 
+ 2017-6-2
+ 1、按55字节遥测包格式输出
+ 
+ 2017.6-3
+ 1.在头文件include.h中增加一个编译开关，针对在mac和ubuntu上编译两种情况，include不同的文件
+	#ifdef _BUILD_ON_MAC
+	#include <sys/malloc.h>
+	#else
+	#include <malloc.h>
+	#endif
+
+2017-6-4
+1.修改initNetsocket，将gNetSocket.client_sockfd = -1;改为pNetsocket->client_sockfd = -1;
+
+2017-6-4
+1.将所有%lu rows 改为 %llu rows
+2.将 (unsigned long)self_mysql_affected_rows改为 self_mysql_affected_rows
+3.对size_t使用%zu输出
+
+
+2017-6-5
+1.解决了YKYC写入指令内容时，以及SC在读取指令内容时，在00处作为字符串截断的问题
+
+2017-6-6
+1.收到应用数据清理指令后，清理遥测表，包括延时遥测数据表，实时遥测历史数据表，延时遥测配置项表，其中配置项表只删除来源为指令配置的遥测配置项
+2.增加函数storeSSycLsSj()，按指定周期，存储实时遥测数据到实时遥测历史数据表
+3.修改数传数据帧结构定义，在1024数传帧外面不再包TCP应用层包头结构
+4.根据新的总体设计文件修改实时遥测数据结构
+5.发现sizeof求一个结构体的大小为什么会多了两个字节，对程序中涉及到此问题的统一解决。在struct.h中前后分别加上#pragma pack(1) 和#pragma pack() 
+6.将实时遥测数据结构中数据长度的赋值从实时遥测数据采集改到主程序初始化（因为长度不变），由0x23改为0x30
+7.增加#define debugPrint infoPrint printf //主要用于临时调试 	
+
+2017-6-7
+1.追踪内存泄漏
+ 7614 pyt64     20   0  170m 2532 1960 S  100  0.1   1:02.90 YKYC 
+ 28786 pyt64     20   0  170m 2528 1964 S  100  0.1  41:45.38 YKYC 
+ 
+ 2017-6-14
+ 1.计算应用心跳的时候，仅以遥控线程是否活跃作为判断依据。这是因为遥测线程已经没有实质性的动作。下一步如果需要单独的遥测线程，那就再说。
+ 
+ 2017-6-15
+ 1.将YK.cpp
+ 		readBuffer(&gSocketBuffer,b,LEN_OF_TCP_LENGTH,indexOfSyncHeader+LEN_OF_TCP_SYNC);
+ 	改为
+ 		int retOfRead;
+        retOfRead = readBuffer(&gSocketBuffer,b,LEN_OF_TCP_LENGTH,indexOfSyncHeader+LEN_OF_TCP_SYNC);
+
+        //如果头中长度部分还没来全就循环等待
+        if(-1 == retOfRead){
+        	msgPrint("MSG-K-Buffer is not ready for read out all TCP Head long.");
+        	continue;
+        }
+    以避免
+    	（1）如果头中长度部分还没来全
+ 2.将YK.cpp
+ 		 readBuffer(&gSocketBuffer,zlData,lenOfIns,indexOfSyncHeader+LEN_OF_TCP_HEAD);
+ 	 改为
+        	 retOfRead = readBuffer(&gSocketBuffer,zlData,lenOfIns,(indexOfSyncHeader+LEN_OF_TCP_HEAD)%BUFFER_SIZE);
+
+        	 //如果没有读出lenOfIns这么多（后续的内容还没有来全）
+        	 if(-1 == retOfRead){
+        		 msgPrint("MSG-K-Buffer is not ready for read out all Ins long.");
+        		 continue;
+        	 }
+ 	 以避免
+ 	 	(1)起始位置错误
+ 	 	(2)socket数据还没有来全，读不到指定长度的数据就继续其他操作
+ 3.将
+
+		#define SQL_OUTFILE_MAXSIZE_WITH_ESCAPE int(SQL_OUTFILE_MAXSIZE*1.1)
+	改为
+		#define SQL_OUTFILE_MAXSIZE_WITH_ESCAPE int(SQL_OUTFILE_MAXSIZE*2+1)
+	因为还是取2倍+1比较稳妥
+	
+4.修改readBuffer（）
+	将数据不够的判断标准由
+		if(bufferLength < dataLength)
+	改为
+		if(bufferLength < dataLength+from)	
+		
+2017-6-21
+1.修改socketReadBuffer的长度，原来为ZL_MAX_LENGTH，现在单独定义一个值SOCKET_READ_LENGTH，工作时为ZL_MAX_LENGTH，调试时为ZL_MAX_LENGTH*100。注意同时修改BUFFER_SIZE为2倍的SOCKET_READ_LENGTH，而不是硬编码1024，即ZL_MAX_LENGTH的两倍
+2.修改输出事件为年月日加时分秒
+3.修改所有errorFprint为errorPrint
+4.修改所有的Print为fprintf
+5.定义#define LOGFILE stdout
+
+2017-7-12
+1.网查了测试TCP连接断开的几种方法
+	（1）方法一
+		当recv()返回值小于等于0时，socket连接断开
+	（2）方法二
+		getsockopt（）读取连接状态
+	（3）方法三
+		使用了select等系统函数，若远端断开，则select返回1，recv返回0则断开
+	（4）方法四
+		开启keepalive属性，若断开，则在使用该socket读写时立即失败，并返回ETIMEDOUT错误
+	（5）方法五
+		自己实现一个心跳检测
+2.测试了其中（1）、（2）、（4）发现
+	（1）使用recv返回值进行判断和采用阻塞读还是非阻塞读没有关系。
+	（2）断开服务端的网线、禁用服务端网卡（windows）、断开客户端网络（ubuntu）、交换机拔电，上述方法都没有区别。
+	（3）使用recv方法必须和方法四联合使用，否则即使网络断开，recv也不会返回<0的结果。
+	（4）当客户端持续发送数据的时候，方法四的keepalive机制不起作用，即使断开网络，recv也不会返回<0的结果。
+
+2017-7-13
+1.启用YC的main_lopp_of_YC循环，
+2.修改SLEEP_YC_LOOP定义，在测试时为间隔1秒操作，实际运行时为0秒间隔
+3.修改const.h,增加“#define table_name_YC_SSYCSJ "GJFW_YC_SSYCSJ" //”
+
+2017-7-14
+1.修改gatherSsycData（）改名为gatherSsycZqData（）仅用于收集需要周期发送的实时遥测数据（从监控管理的自身状态表取数据）。
+2.将sendSsycData（）改名为sendSsycZqData（），仅用于发送需要周期发送的实时遥测数据。
+3.增加函数sendSsycSj（）选取和发送实时遥测数据表中的数据。
+4.在增加对sendSsycSj的调用。
+5.增加
+	//实时遥测最大长度
+	#define SSYC_MAX_LENGTH 256
+6.将ssyc_struct_t改名为zqssyc_struct_t，ssyc_t改名为zqssyc_t，ssyc_s改名为zqssyc_s
+7.增加定义
+	//定义实时遥测数据头
+	typedef struct ssyc_head_s{
+		__uint8_t header[2];
+		__uint8_t yyId;
+		__uint8_t length;
+	}ssyc_head_t;
+
+2017-7-17
+1.在const.h中，增加一个常量，定义周期发送的实时遥测的采集Sql
+	#define SQL_GATHER_ZQSSYC "select * from GJFW_YK_ZL"
+2.在struct.h中，修改zqssyc_t的定义，前面的头使用ssyc_head_t结构
+3.在const.h中，增加2个定义
+	#define LEN_OF_SSYC_SYNC 2 //实时遥测包的同步头长度
+	#define LEN_OF_SSYC_HEAD 4 //实时遥测包的包头长度
+	#define SSYC_SYNC_0 0xEB
+	#define SSYC_SYNC_1 0x90
+4.函数改名
+	sendSsycZqData ——> sendZqSsyc
+	sendSsycSj ——> sendAxSsyc
+	gatherSsycZqData ——> gatherZqSsycData
+5.增加一个编译开关控制是否发送周期遥测
+	_SEND_ZQ_SSYC
+6.用编译开关控制是否发送按需遥测
+	#ifdef _SEND_SOCKET_DATA
+		sendAxSsyc();
+	#endif
+7.增加常量定义
+	//表的列号
+	//GJFW_YC_SSYCSJ表的列号
+	#define column_num_of_SSYC_ID_in_table_name_YC_SSYCSJ 0 //GJFW_YC_SSYCSJ表的SSYC_ID列号
+	#define column_num_of_YY_ID_in_table_name_YC_SSYCSJ 1 //GJFW_YC_SSYCSJ表的YY_ID列号
+	#define column_num_of_SSYC_YXJ_in_table_name_YC_SSYCSJ 2 //GJFW_YC_SSYCSJ表的SSYC_YXJ列号
+	#define column_num_of_SSYC_NR_in_table_name_YC_SSYCSJ 3 //GJFW_YC_SSYCSJ表的SSYC_NR列号
+
+	//GJFW_YC_YSYCPZX表的列号
+	#define column_num_of_YY_ID_in_table_name_YC_YSYCPZX 0 //GJFW_YC_YSYCPZX表的YY_ID列号
+	#define column_num_of_YSYCPZX_ID_in_table_name_YC_YSYCPZX 1 //GJFW_YC_YSYCPZX表的YSYCPZX_ID列号
+	#define column_num_of_YSYCPZX_CJFF_in_table_name_YC_YSYCPZX 4 //GJFW_YC_YSYCPZX表的YSYCPZX_CJFF列号
+
+2017-7-18
+1.由于zqssyc_t定义改变，修改storeSSycLsSj（），
+  将
+	len = mysql_real_escape_string(&gMysql.mysql, (char*)to, (char*)(&gSsycStruct.zqssycData[0])+LEN_OF_TCP_HEAD, sizeof(zqssyc_t)-LEN_OF_TCP_HEAD);
+  改为
+  	len = mysql_real_escape_string(&gMysql.mysql, (char*)to, (char*)(&gSsycStruct.zqssycData[0])+sizeof(ssyc_head_t), sizeof(zqssyc_t)-sizeof(ssyc_head_t));
+    to[len] = '\0'
+2.YC.cpp中大量写到stderr的改到LOGFILE
+3.在sendAxSsyc（）发送前，调用（相对于app写实时遥测数据表，这是第二次调用，目的是确保脱掉0字符，避免字符串截断不能全部发送）mysql_real_escape_string，脱掉0字符为\0。
+
+2017-7-20
+1.如果定义，则在发送一条按需实时遥测数据后不删除它
+	#define _DELETE_AFTER_SEND_AX_SSYC
+2.修改sendAxSsyc()，使用_DELETE_AFTER_SEND_AX_SSYC控制发送按需实时遥测之后是否删除数据库记录
+3.增加编译控制宏
+	//如果定义，则连接.31作为网络服务器
+	#define _CONNECT_TO_31_SERVER
+	
+2017-7-21
+1.增加宏定义，控制是否在发送按需实时遥测之前进行mysql_real_escape_string操作
+	#define ESCAPE_STRTING_BEFORE_SEND_AXSSYC
+2.在sendAxSsyc（）中用宏ESCAPE_STRTING_BEFORE_SEND_AXSSYC控制是否在发送按需实时遥测前对整个senddata再做一次脱0处理
+
+2017-7-24
+1.修改YC.cpp中的sendAxSsyc（）函数，在删除已经发送的遥测数据时，先检查一下strSSYC_ID是否为空串，避免执行sql报错。
+
+2017-7-25
+1.修改dealWithAnUnreadZl（）,将
+	string sqlSelectZL = "select * from "+
+	string sqlSelectZL = "select ZL_ID,YY_ID,ZL_LX,ZL_BH,ZL_NR from "+
+	同步修改ZL_NR对应的rowid为4
+2.根据SC的改动，修改dealWithAnUnreadZl（）,因为用strZL_NR.length();取指令内容长度是不正确的，所以
+	将指令内容赋值由
+             //将指令内容由字符串转换为unsigned char数组
+             int lengthOfstrZL_NR = strZL_NR.length();
+             int i;
+             for (i=0;i<lengthOfstrZL_NR;i++){
+            	 ucharZL_NR[i] =  strZL_NR.c_str()[i];
+             }//for
+    改为
+             int i;
+             for (i=0;i<507;i++)
+            	 ucharZL_NR[i] = mysql_row[4][i];
+
+2017-7-26
+1.修改sendAxSsyc（）,
+	在所有
+		return -1;
+	之前增加
+		self_mysql_free_result(mysql_result);            	 
+    解决内存泄漏问题
+            	 
+2.高航调试，发现发511个上注包只收到510个，有时511个，有时509个
+	把写入实时遥测历史数据表、写入自身状态表，更新应用状态表等操作的msg输出都用//PYT//临时注释掉
+3.定义一个存放统计信息的结构体
+	//统计信息
+	struct total_s{
+		//从socket上接收到的总字节数
+		__uint64_t sizeRecvFromSocket;
+		//从收到字节流中解析出的总指令数
+		__uint32_t packageResolved;
+		//解析出的所有指令的总字节数
+		__uint64_t sizeOfPackageResolved;
+	}total_t;        	 
+4.定义一个全局变量
+	total_t gTotal;
+5.在init()中增加初始化部分
+	bzero(&gTotal,sizeof(total_t));。
+6.在相关部分计数，并输出
+7.增加一个函数，用于输出统计信息
+	void printTJXJ(void);
+8.定义输出统计信息超时时间
+	#define PRINT_TOTAL_INTERVAL (10*(NUM_OF_BASE_TIMER_TICK_FOR_A_SECOND)) //10输出一次统计信息
+9.修改onMainTimer（），周期输出统计量
+	增加
+			if(gBaseTimerCount%PRINT_TOTAL_INTERVAL == 1){
+			printTJXJ();
+		}
+10.修改main_loop_of_YK()，如果清除gSocketBuffer出现错误则退出YK循环
+        	//如果清除gSocketBuffer出现错误则退出YK循环
+        	if(ret == -1){
+        		errorPrint(LOGFILE,"Empty gSocketBuffer error, There is no enough data.\n");
+        		break;
+        	}
+
+11.修改main_loop_of_YK()，如果弹出gSocketBuffer出现错误则退出YK循环
+         	//如果弹出gSocketBuffer出现错误则退出YK循环
+             if(rett == -1){
+         		errorPrint(LOGFILE,"Pop gSocketBuffer error, There is no enough data.\n");
+         		break;
+             }
+            
+12.增加两个统计量
+	//压入buffer的字节数
+	__uint64_t sizeOfPushBuffer;
+	//弹出buffer的字节数
+	__uint64_t sizeOfPopBuffer;
+13.修改: 在调用popBuffer后增加
+			gTotal.sizeOfPopBuffer +=  length;
+14.修改readSocket() : 在调用pushBuffer后增加
+        	 gTotal.sizeOfPushBuffer +=  length;
+	
+15.修改commonTool.cpp的pushBuffer（）、popBuffer（）、findBuffer（）、readBuffer（）	
+	将检查数据量和操作合并在一个加锁段内执行。
+16.修改commonTool.cpp的pushBuffer（）、popBuffer（）、findBuffer（）、readBuffer（），不用lengthOfBuffer（）计算缓冲中的有效数据量
+	int length = 0;
+	if(buffer->head != -1)
+		length = (buffer->tail + BUFFER_SIZE -buffer->head +1)%BUFFER_SIZE;
+	解决高航发现的丢指令的问题
+17.根据15、16修改printBuffer（）	
+18.修改main_loop_of_YK（）中，指令入库的操作，尝试三次，都失败就放弃。
+	将
+		ret = self_mysql_query(&gMysql, strInsertZL.c_str());
+	改为
+    	int ret;
+    	//尝试三次操作数据库，如果都失败，就认了。
+    	int count;
+    	for(count=0;count<3;count++){
+    		ret = self_mysql_query(&gMysql, strInsertZL.c_str());
+            if (!ret) {
+            	break;
+            }else{
+            	sleep(1);
+            }
+    	}
+【备份】workspace_local_20170728
+2017-7-28
+1.网查command out of sync的错误原因是mysql_result未关闭状态下就进行下一次查询。这在多线程共享一个数据库链接时难以避免。因此，修改为3个线程使用3个独立的数据库链接。
+（1）修改global.cpp和global.h
+		mysql_t gMysql;
+	为
+		mysql_t gMysql[3];
+（2）修改const.h
+	定义三个线程的编号，用于区分数据链接
+		#define _YKYC 0
+		#define _YK 1
+		#define _YC 2
+（3）将YC.cpp
+		中的
+			gMysql
+		替换为
+			gMysql[_YC]
+（4）将YK.cpp
+		中的
+			gMysql
+		替换为
+			gMysql[_YK]
+（5)修改YKYC.CPP
+	将
+		initMysql(&gMysql);
+	修改为		
+		initMysql(&gMysql[_YKYC]);
+		initMysql(&gMysql[_YK]);
+		initMysql(&gMysql[_YC]);
+	将
+		destroyMysql(&gMysql);
+	修改为
+		destroyMysql(&gMysql[_YKYC]);
+		destroyMysql(&gMysql[_YK]);
+		destroyMysql(&gMysql[_YC]);
+（6）将YKYC.cpp
+		中的其它处
+			gMysql
+		替换为
+			gMysql[_YKYC]			
+（7）修改commonTool.cpp
+		将
+			void closeDB(void);
+		改为
+			void closeDB(mysql_t *Mysql);
+		将
+			int connectDB(void);
+		改为
+			int connectDB(mysql_t *Mysql);
+			
+
+（8）修改YKYC.cpp的init（），
+	将数据库链接部分
+		if (0>=connectDB(&gMysql)){
+			return -1; 
+	修改为
+		////////////////////////////////
+		//链接数据库，如果失败就返回-1
+		///////////////////////////////
+		if (0>=connectDB(&gMysql[_YKYC])){
+			return -1; //-1表示无法链接到数据库
+		}else if (0>=connectDB(&gMysql[_YK])){
+			closeDB(&gMysql[_YKYC]);
+			return -1;
+		}else if (0>=connectDB(&gMysql[_YC])){
+			closeDB(&gMysql[_YKYC]);
+			closeDB(&gMysql[_YK]);
+			return -1;
+		}
+		gIntIsDbConnected = 1;
+（9）修改YKYC.cpp的quit（），
+	将数据库关闭部分
+		//关闭数据库
+		closeDB();
+	改为
+		//关闭数据库
+		closeDB(&gMysql[_YKYC]);
+		closeDB(&gMysql[_YK]);
+		closeDB(&gMysql[_YC]);
+		gIntIsDbConnected = 0;
+（10）修改
+	将
+		//封装mysql_num_rows
+		my_ulonglong STDCALL self_mysql_num_rows(MYSQL_RES *res);
+		//封装mysql_free_result
+		void		STDCALL self_mysql_free_result(MYSQL_RES *result);
+		//封装mysql_fetch_row
+		MYSQL_ROW	STDCALL self_mysql_fetch_row(MYSQL_RES *result);
+	改为
+		//封装mysql_num_rows
+		my_ulonglong STDCALL self_mysql_num_rows(mysql_t *pMYsql,MYSQL_RES *res);
+		//封装mysql_free_result
+		void		STDCALL self_mysql_free_result(mysql_t *pMYsql,MYSQL_RES *result);
+		//封装mysql_fetch_row
+		MYSQL_ROW	STDCALL self_mysql_fetch_row(mysql_t *pMYsql,MYSQL_RES *result);
+
+2.考虑到每个cpp里的函数不一定是被自己所在cpp对应的线程调用所以，还是需要根据所属线程选择数据库链接进行操作。
+（1）修改struct.h
+	在
+		total_t结构中
+	增加
+		//YKYC（主线程）pt
+		pthread_t YkycPt;
+		//YK线程pt
+		pthread_t YkPt;
+		//YC线程pt
+		pthread_t YcPt;	
+（2）修改main（）,
+		在
+			init()初始化后
+		增加
+			//记录主线程pt
+			gTotal.YkycPt = pthread_self();
+（3）修改YC.cpp,
+		在
+			main_loop_of_YC（）开始处
+		增加
+			//记录YC线程pt
+			gTotal.YcPt = pthread_self();
+（4）修改YK.cpp,
+		在
+			main_loop_of_YC（）开始处
+		增加
+			//记录YK线程pt
+			gTotal.YkPt = pthread_self();			
+（5）在commonTool.c中增加一个函数
+	//根据调用此函数所在的线程，返回适当的数据库链接
+	mysql_t * getMysql(void){
+	pthread_t pt = pthread_self();
+	if (pt == gTotal.YkycPt){
+		return &gMysql[_YKYC];
+	}else if (pt == gTotal.YkPt){
+		return &gMysql[_YK];
+	}else if (pt == gTotal.YcPt){
+		return &gMysql[_YC];
+	}else{
+		return NULL;
+	}
+	
+（6）修改YC.cpp
+	在所有使用数据库链接的地方，
+	使用函数局部变量（类似如下形式）
+		//取得本线程对应的数据库链接
+		mysql_t * selfMysqlp = NULL;
+		selfMysqlp = getMysql();
+		if (NULL == selfMysqlp){
+			errorPrint(LOGFILE,"ERR-C-Can not get mysql connection for this thread!\n");
+			return -1;
+		}
+	代替
+		&gMysql[_YC]
+	注意在
+		main_loop_of_YC（）中，定义此局部变量的位置需要在一下语句之后
+			//记录YC线程pt
+			gTotal.YcPt = pthread_self();
+		采用如下形式
+			//取得本线程对应的数据库链接
+			mysql_t * selfMysqlp = NULL;
+			selfMysqlp = getMysql();
+			if (NULL == selfMysqlp){
+				errorPrint(LOGFILE,"ERR-C-Can not get mysql connection for this thread!\n");
+
+				int *pRet =  (int*)malloc(sizeof(int));
+				*pRet = 1;
+
+				prgPrint(LOGFILE,"PRG-C-main_loop_of_YC is going to close.\n");
+
+				pthread_exit((void*)pRet);
+			}
+	将
+		selfMysqlp.mysql
+	替换为
+		&selfMysqlp->mysql		
+
+（7）修改YK.cpp
+	在main_loop_of_YK（）中
+	使用函数局部变量
+		mysql_t * selfMysqlp = NULL;
+		selfMysqlp = getMysql();
+		if (NULL == selfMysqlp){
+			errorPrint(LOGFILE,"ERR-K-Can not get mysql connection for this thread!\n");
+
+			int *pRet =  (int*)malloc(sizeof(int));
+			*pRet = -1;
+
+			prgPrint(LOGFILE,"PRG-K-main_loop_of_YK is going to close.\n");
+
+			pthread_exit((void*)pRet);
+		}
+	代替
+		&gMysql[_YK]		
+	注意应放在如下语句之后
+		//记录YK线程pt
+		gTotal.YkPt = pthread_self();
+	将
+		selfMysqlp.mysql
+	替换为
+		&selfMysqlp->mysql	
+（8）修改YKYC.cpp
+	在所有使用数据库链接的地方，
+	使用函数局部变量（类似如下形式）
+		//取得本线程对应的数据库链接
+		mysql_t * selfMysqlp = NULL;
+		selfMysqlp = getMysql();
+		if (NULL == selfMysqlp){
+			errorPrint(LOGFILE,"ERR---Can not get mysql connection for this thread!\n");
+			return -1;
+		}
+	代替
+		&gMysql[_YKYC]
+	注意在
+		main（）中，定义此局部变量的位置需要在一下语句之后
+			//记录主线程pt
+			gTotal.YkycPt = pthread_self();;
+
+	将
+		selfMysqlp.mysql
+	替换为
+		&selfMysqlp->mysql	
+
+3.将init（）中对initYsycPzxListArray（）的调用放到可以取到数据链接的地方
+【备份】YKYC_local_20170728_2.tar.gz			
+【备份】workspace_mb_20170728_3.tar.gz
+
+【备份】workspace_mb_20170810_1.tar.gz
+
+20170815
+1.新增一个输出函数
+	int myfprintf (FILE *__restrict __stream,
+		    __const char *__restrict __format1,__const char *__restrict __format2, ...);
+2.新增一个编译开关
+	//如果定义则，输出中文
+	#define _PRINT_AS_CHINESE
+3.修改debug.h，
+	将
+		printf
+	改为
+		myfprintf
+3.更新YKYC.CPP到函数startListenerToExitSignal（）
+
+20170821
+1.修改所有在用的输出
+2.修改createSelfUsedTables
+	将最后调用的
+		updateSelfState(true);
+	删除
+		updateSelfState(true);
+3.修改main
+	在调用
+		createSelfUsedTables
+	之后增加
+		updateSelfState(true);
+
+20170822
+1.增加3个全局变量
+	//最近指令类型
+	__uint8_t gZlLx;
+	//最近指令编号
+	__uint8_t gZlBh;
+	//最近指令的YY_ID
+	__uint8_t gZlYyId;
+2.增加上述三个全局变量的初始化和赋值
+3.修改zqssyc_t定义
+	//定时发送的实时遥测包的结构
+	typedef struct zqssyc_s{
+		ssyc_head_t ssyc_head;
+		//指令相关信息
+		__uint8_t zlCount; //指令计数
+		__uint8_t zlLx; //最近指令类型
+		__uint8_t zlBh; //最近指令编号
+		__uint8_t zlYyId; //最近指令的YY_ID
+
+
+		//时间相关信息
+		__uint32_t dqSjMs; //当前时间秒数
+	
+		//节点相关信息
+		__uint32_t kyKj;//指定磁盘空余空间
+		__uint8_t YyBfb[5];//指定磁盘已用百分比
+		float cpu;//cpu占用率
+	
+	}zqssyc_t;
+4.在gatherZqSsycData()函数中增加取当前时间、取指令信息和取节点信息的代码
+（1）将
+		SQL_GATHER_ZQSSYC
+	定义为
+		select * from SELF_JKGL_XTXXXC;
+
+5.发现运行错误（核心转储），定位到错误输出函数。故意设置错误的sql，并用如下4个输出进行测试
+	     （1）原输出（错误转储）
+    	 //errorPrint(LOGFILE, "ERR---Insert/update self state table %s failed, error %d: %s.\n", "错误---插入/更新自用状态表%s失败（错误编号：%d，%s）.\n",table_name_SELF_CKFW_ZT, self_mysql_errno(selfMysqlp), self_mysql_error(selfMysqlp));
+
+    	 （2）改调用mysql_errno和mysql_error的输出（错误转储）
+    	 errorPrint(LOGFILE, "ERR---Insert/update self state table %s failed, error %d: %s.\n", "错误---插入/更新自用状态表%s失败（错误编号：%d，%s）.\n",table_name_SELF_CKFW_ZT, mysql_errno(&selfMysqlp->mysql), mysql_error(&selfMysqlp->mysql));
+
+    	 （3）改用printf的输出（正确）
+    	 //fprintf(LOGFILE, "错误---插入/更新自用状态表%s失败（错误编号：%d，%s）.\n",table_name_SELF_CKFW_ZT, self_mysql_errno(selfMysqlp), self_mysql_error(selfMysqlp));
+
+         （4）改用printf的输出，且改调用mysql_errno和mysql_error（正确）
+       	 //fprintf(LOGFILE, "错误---插入/更新自用状态表%s失败（错误编号：%d，%s）.\n",table_name_SELF_CKFW_ZT, mysql_errno(&selfMysqlp->mysql), mysql_error(&selfMysqlp->mysql));
+	发现，当采用fprintf输出时都正常。当采用自定义双语输出时都错误。
+6.除了5以外，自定义双语输出的另几个错误是
+	（1）不能使用%s格式正确输出库表名称
+			过程-C-设置实时遥测表优先级成功.
+	（2）输出SQL时
+			SQL---更新表SQL: SQL---更新%s表SQL: %s.	
+		而实际输出语句为
+			sqlPrint(LOGFILE,"SQL---Update table %s sql: %s.\n","SQL---更新%s表SQL: %s.\n",table_name_SELF_CKFW_ZT,sqlUpdateSelfState.c_str());
+7.针对5、6的问题，修改myfprintf
+	将
+		fprintf
+	改为
+		vfprintf
+8.为使数据库操作返回的输出更为明确
+	将所有的
+		“%llu rows” 
+	改为
+		“affact %d rows"	
+9.增加两个全局变量，统计遥测计数
+	//周期遥测计数
+	__uint32_t gZqYcCount;
+	//按需遥测计数
+	__uint32_t gAxYcCount;
+10.修改sendAxSsyc（）
+	将
+		+ " order by SSYC_YXJ desc";
+	改为
+		+ " where SSYC_CD is not NULL order by SSYC_YXJ desc";
+
+【备份】	workspace_mb_20170822.tar.gz
+
+2017-8-24
+1.因交叉编译有问题，修改include.h
+	增加
+		#include <stdarg.h>
+2.考来771所提供的工具链在/media/sda1/771下	
+3.为使用771所提供的工具链进行交叉编译，需要先交叉编译zlib
+	下载地址：http://www.zlib.NET/
+	export CC=/media/sda1/771/opt/gcc-4.6.2-glibc-2.13-linaro-multilib-2011.12/fsl-linaro-toolchain/bin/arm-fsl-linux-gnueabi-gcc
+	./configure
+	sudo make
+4.根据“ARM”新建一个新的build目标“771”，
+	将工具链
+		/home/pyt64/timesys/i_MX6QSABRELite/toolchain/bin/armv7l-timesys-linux-gnueabi-
+	都改为
+		/media/sda1/771/opt/gcc-4.6.2-glibc-2.13-linaro-multilib-2011.12/fsl-linaro-toolchain/bin/arm-fsl-linux-gnueabi-
+	在linker中加入zlib的库文件位置
+		/home/pyt64/771-build/zlib-1.2.11
+	编译成功
+	
+2017-9-2	
+1.定义一个宏RUN_ON_711,
+	//如果定义，则不定义64位的变量
+	define RUN_ON_711
+2.修改
+	typedef struct total_s
+	当宏RUN_ON_711有定义时，不使用__uint64_t，都换成__uint32_t
+3.现在遥控和遥测线程都有启动，
+
+todo:
+#1、问题：会收到socket上40个字节的数据，来源不明（2017-6-6，再查此问题，没有了）
+#2、根据清理标志，做不同深度的清理（暂不做）
+#3、根据实时遥测的最终确定的方法进行遥测（ok）
+#4、清除用于测试的实时遥测内容，改为从监控管理的状态表取数据作为周期发送的遥测内容。
+5、对采集到的延时遥测数据进行压缩（是否有必要）
+#6、服务器链接不正常断开时，链接维护可能还有问题（除了添加应用层心跳没有更好办法）
+7、高速注入的时候，有时会出现pushBuffer大于popBuffer的情况，还未解决
+	出现pushBuffer=popBuffer，但少2包的情况
+		--------------------------------------------------
+		recv 1708083 bytes, dicard 0 bytes for Sync, discard 0 bytes for mistake Ins length, resolve 1708083 bytes to 3369 ZL, discard 0 ZL for mistake SBID, Insert to DB 3369 ZL, Fail to Insert 0 ZL.
+		push gSocketBuffer 1708083 bytes, pop gSocketBuffer 1708083 bytes.
+		gSocketBuffer remain 0 bytes.
+		pthreadId: YKYC = 139758570231616, YK = 139758543664896, YC = 139758533121792.
+		--------------------------------------------------
+	正常应该是
+		--------------------------------------------------
+		recv 1709097 bytes, dicard 0 bytes for Sync, discard 0 bytes for mistake Ins length, resolve 1709097 bytes to 3371 ZL, discard 0 ZL for mistake SBID, Insert to DB 3371 ZL, Fail to Insert 0 ZL.
+		push gSocketBuffer 1709097 bytes, pop gSocketBuffer 1709097 bytes.
+		gSocketBuffer remain 0 bytes.
+		pthreadId: YKYC = 140253897185088, YK = 140253870618368, YC = 140253860075264.
+		--------------------------------------------------
+8、修改GJFW_YC_SSYCSJ定义
+	将字段
+		SSYC_CD
+	属性改为
+		非空
+		
+
+2017-12-14
+1 . mysql>alter table GJFW_YC_SSYCSJ add column SSYC_GS tinyint unsigned;
+2. mysql>alter table GJFW_YC_SSYCSJ modify column YY_ID tinyint unsigned;
+3. mysql>alter table GJFW_YC_YSYCPZX modify column YSYCPZX_CJZQ tinyint unsigned;
+4. mysql>alter table GJFW_SZ_SZSJ modify column SZSJB_GS tinyint unsigned; 
+5. mysql>alter table GJFW_SZ_SZSJ modify column SZSJB_ZT tinyint unsigned;
+6. mysql> alter table GJFW_SLT modify column YY_ID tinyint unsigned;
+7. mysql> alter table GJFW_YST modify column YY_ID tinyint unsigned;
+8. mysql> alter table GJFW_YST modify column YST_CS tinyint unsigned;
+9. mysql> alter table GJFW_SLT modify column SLT_CS tinyint unsigned;
+mysql> alter table GJFW_LRXJ_ZP modify column ZPWJ_BGZY tinyint unsigned;
+mysql> alter table GJFW_LRXJ_ZP modify column ZPWJ_GS tinyint unsigned;
+
+
+drop table 000040FF;
+drop table 00023AFF;
+drop table 000241FF;
+drop table 00213AFF;
+drop table 00233AFF;
+drop table 00253AFF;
+drop table 00263AFF;
+drop table 002B3AFF;
+
+source nodezy_ptsj_20171215.dmp
+
+sendAxSsyc()
+取出一条优先级最大的实时遥测内容
+"select SSYC_ID,YY_ID,SSYC_CD,SSYC_NR from " ->"select SSYC_ID,YY_ID,SSYC_CD,SSYC_NR,SSYC_GS from "
+
+                   //20171218 add
+                   //取出SSYC_GS内容，如果不为NULL，则输出
+                   if (mysql_row[4] == NULL){
+                	   errorPrint(LOGFILE,"ERR-C-Get a null column SSYC_GS in %s.\n","错误-C-%s表SSYC_GS列为空.\n", table_name_YC_SSYCSJ);
+            	  	  self_mysql_free_result(selfMysqlp,mysql_result);
+            	  	  return -1;
+                   }else{
+
+                	   	   strSSYC_GS = mysql_row[4];
+                	   	  // intLengthOfSsycNr = atoi(strSSYC_GS.c_str());
+                   	   dataPrint(LOGFILE,"SSYC_GS is: %d .\n","实时遥测GS SSYC_GS: %s .\n",strSSYC_GS);
+                   }
+
+                   //20171218 change
+            	   dataPrint(LOGFILE,"DAT-C-Debug read a SSYCSJ with SSYC_ID =%s, YY_ID = %s, SSYC_GS=%s, SSYC_NR = .\n","数据-C-Debug读到一条实时遥测数据 SSYC_ID =%s, YY_ID = %s, SSYC_GS=%s, SSYC_NR = .\n",strSSYC_ID.c_str(),strYY_ID.c_str(),strSSYC_GS.c_str());
+
+
+            	   //20171218 change
+            	   //unsigned char sendData[LEN_OF_SSYC_HEAD+intLengthOfSsycNr];
+            	   unsigned char sendData[LEN_OF_SSYC_HEAD+intLengthOfSsycNr+1];
+            	   
+            	                      //20171218
+                   //char to[(SSYC_MAX_LENGTH+LEN_OF_SSYC_HEAD)*2+1];
+                  // bzero(to,(SSYC_MAX_LENGTH+LEN_OF_SSYC_HEAD)*2+1);
+                   char to[(SSYC_MAX_LENGTH+LEN_OF_SSYC_HEAD+1)*2+1];
+                   bzero(to,(SSYC_MAX_LENGTH+LEN_OF_SSYC_HEAD+1)*2+1)
+                   
+                                      //20171218 change
+                   //len = mysql_real_escape_string(selfMysqlp->mysql, to, (char *)sendData, (intLengthOfSsycNr+LEN_OF_SSYC_HEAD));
+                   len = mysql_real_escape_string(selfMysqlp->mysql, to, (char *)sendData, (intLengthOfSsycNr+LEN_OF_SSYC_HEAD+1));
+const.h
+#define LEN_OF_SSYC_HEAD 4 //实时遥测包的包头长度
+
+struct.h
+typedef struct ssyc_head_s{
+	__uint8_t header[LEN_OF_SSYC_SYNC];
+	__uint8_t yyId;
+	__uint8_t length;
+}ssyc_head_t;
+
+typedef struct ssyc_head_s{
+	__uint8_t header[LEN_OF_SSYC_SYNC];
+	__uint8_t yyId;
+	__uint8_t length;
+	//20171218 add
+	__uint8_t gs;
+}ssyc_head_t;
+
+
+
+
+ykyc.cpp
+init()
+	//20171218 add
+	gSsycStruct.zqssycData[0].ssyc_head.gs = 1;
+	gSsycStruct.zqssycData[1].ssyc_head.gs = 1;
+
+
+20171225
+	//20171218 add
+	//20171225 change
+#ifdef _YC_STRUCT
+	gSsycStruct.zqssycData[0].ssyc_head.gs = 1;
+	gSsycStruct.zqssycData[1].ssyc_head.gs = 1;
+#else
+	gSsycStruct.zqssycData[0].ssyc_head.gs = 0;
+	gSsycStruct.zqssycData[1].ssyc_head.gs = 0;
+#endif
+
+
+////////////////////////////////
+//数据库导入导出方法
+////////////////////////////////
+mysqldump -uroot -p node > filename
+mysql -uroot -p
+use node;
+source filename;
+
+
+////////////////////////////////
+//mac调试方法
+////////////////////////////////
+1.修改配置
+包含文件：
+	//#include <malloc.h>
+	#include <sys/malloc.h>
+mysql库的位置：
+	/usr/local/Cellar/mysql/5.7.18_1/include/mysql
+	/usr/local/Cellar/mysql/5.7.18_1/lib
+库：
+	mysqlclient	
+
+2.启动网络调试助手app
+3.启动数据库
+	mysql.server start
+///////////////////////////////////
+移动硬盘调试方法 pc
+///////////////////////////////////
+1.修改配置
+包含文件：
+	#include <malloc.h>
+	//#include <sys/malloc.h>
+mysql库的位置：
+	/home/pyt64/mysql-connector-c-6.1.5-src/libmysql
+	/home/pyt64/mysql-connector-c-6.1.5-src/include
+库：
+	mysqlclient
+	
+2.启动调试TCP服务器，在127.0.0.1：8001端口监听
+	cd /opt/mNetAssist/mNetAssist
+	./mNetAssist
+	
+3.配置mysql的secure-file-priv	
+	pyt64@pyt64-Ubuntu:/etc$ sudo gedit mysql/my.cnf	
+		在[mysqld]下加入一行
+			secure-file-priv = /sqlexport/
+		注释掉
+			key_buffer		= 16M
+	复制到/etc下
+		pyt64@pyt64-Ubuntu:/etc$ sudo cp  mysql/my.cnf ../
+4.如果需要重启mysql
+	mysqld restart
+	
+///////////////////////////////////
+移动硬盘交叉编译方法 arm
+///////////////////////////////////
+包含文件：
+	#include <malloc.h>
+	//#include <sys/malloc.h>
+mysql库的位置：
+	/home/pyt64/mysql-build/libmysqlclient-deb/lib/arm-linux-gnueabi
+	/home/pyt64/mysql-build/libmysqlclient-deb/include/mysql
+工具链：
+	Linker
+		/home/pyt64/timesys/i_MX6QSABRELite/toolchain/bin/armv7l-timesys-linux-gnueabi-g++
+	AS
+		/home/pyt64/timesys/i_MX6QSABRELite/toolchain/bin/armv7l-timesys-linux-gnueabi-as
+	GCC
+		/home/pyt64/timesys/i_MX6QSABRELite/toolchain/bin/armv7l-timesys-linux-gnueabi-gcc
+	G++
+		/home/pyt64/timesys/i_MX6QSABRELite/toolchain/bin/armv7l-timesys-linux-gnueabi-g++
+库：
+	mysqlclient
+	pthread
+	z
+	dl
+	
+///////////////////////////////////
+移动硬盘arm调试方法
+///////////////////////////////////
+//PC端
+1.telnet 192.168.0.4
+2.拷贝 ～/workspace/YKYC/ARM下的可执行文件到 ~/rootnfs
+3.启动调试助手，在192.168.0.30：8001端口上监听
+	cd /opt/mNetAssist/mNetAssist
+	./mNetAssist
+	127.0.0.1：8001端口监听
+4.启动数据库服务
+
+//ARM端
+1.开启网络文件服务
+	 
+	cp /mnt/nfs/arm-771/exe_rjs/YKYC YKYC_PANYANTAO
+	
+2.运行YKYC
+	/mnt/nfs # ./YKYC
+	
+/////////////////////////////////////////////
+//常用sql
+/////////////////////////////////////////////
+1.查看指令表
+	select ZL_ID,YY_ID,ZL_LX,ZL_BH,ZL_ZXJG from GJFW_YK_ZL;
+	
+/////////////////////////////////////////////
+//数据准备
+/////////////////////////////////////////////	
+1.在应用状态表中加入一条YY_ID为255的记录
+	(1)mysql> insert into GJFW_JKGL_YYZT(YY_ID) values(255);
+2.将自动生成的灵瑞相机照片表记录的照片路径都改为"/pic/a.jpg" 
+	(2)mysql> update GJFW_LRXJ_ZP set ZPWJ_LJ = "/pic/a.jpg" where 1=1;
+3.清除延时遥测数据表
+	mysql> truncate table GJFW_YC_YSYCSJ;
+4.删除延时遥测配置表中无效的记录
+	delete from GJFW_YC_YSYCPZX where YSYCPZX_SFYX != 1;
+5.找出有效的遥测配置项（此处YSYCPZX_ID为8），将它的配置项采集方法配置成“查询指令表有多少数据”
+	update GJFW_YC_YSYCPZX set YSYCPZX_CJFF = "select count(*) from GJFW_YK_ZL;" where YSYCPZX_ID = 8;
+6.清除数传文件
+	mysql> truncate table GJFW_SCJ_SCWJ;
+	
+	
+//////////////////////////////////////////
+//771调试
+////////////////////////////////////////////
+1.telnet 192.168.1.31 
+	root
+2.nfs
+	mount -t nfs -o nolock 192.168.1.30:/home/pyt64/rootnfs /mnt/nfs
+	
+	
+	
+	
+-------------------------------------------------------------------
+20171226
+1.
+#define _INSERTZLMANUALLY
+->
+//#define _INSERTZLMANUALLY
+2.
+#define YCCJ_OUTFILE_NAME "/sqlexport/pytfile"
+->
+#define YCCJ_OUTFILE_NAME "/home/sqlexport/pytfile"
+3.
+#define SELECTINTO " INTO OUTFILE \"/sqlexport/pytfile\" FIELDS TERMINATED BY \',\' OPTIONALLY ENCLOSED BY \'\"\' LINES TERMINATED BY \'\\n\';"
+->
+#define SELECTINTO " INTO OUTFILE \"/home/sqlexport/pytfile\" FIELDS TERMINATED BY \',\' OPTIONALLY ENCLOSED BY \'\"\' LINES TERMINATED BY \'\\n\';"
+4. improve interval of send zq yc
+const.h
+//输出统计信息超时时间
+#define SEND_ZQYC_INTERVAL (30*(NUM_OF_BASE_TIMER_TICK_FOR_A_SECOND)) //10s输出一次统计信息
+YKYC.cpp
+//发周期实时遥测数据
+	if(gBaseTimerCount%SEND_ZQYC_INTERVAL == 0){
+
+2017-12-27
+1.
+
+//delete SSYCSJ when Start
+int deleteSSYCSJWhenStart(void);
+
+//如果定义，truncate SSYCSJ table
+#define _TRUNCATE_SSYCSJ_TABLE_WHENRESTART
+
+
+#ifdef  _TRUNCATE_SSYCSJ_TABLE_WHENRESTART
+    /////////////////////////
+    //delete SSYCSJ when started
+    /////////////////////////
+    deleteSSYCSJWhenStart();
+#endif
+
+2.
+//////////////////////
+//DB connect retry time
+//////////////////////
+#define MAX_CONNECT_TIMES 5
+
+
+	if (0>=connectDB(&gMysql[_YKYC])){
+	->
+		int try_times=0;
+	int success=0;
+	while(success=0 and try_times<MAX_CONNECT_TIMES){
+		if (0>=connectDB(&gMysql[_YKYC])){
+			try_times++;
+			sleep(10);
+		}else{
+			success=1;
+		}
+	}
+
+	if (success==0){
+	
+	
+	3.
+	                   //20171218 add
+                   //取出SSYC_GS内容，如果不为NULL，则输出
+                   if (mysql_row[4] == NULL){
+                	   errorPrint(LOGFILE,"ERR-C-Get a null column SSYC_GS in %s.\n","错误-C-%s表SSYC_GS列为空.\n", table_name_YC_SSYCSJ);
+            	  	  self_mysql_free_result(selfMysqlp,mysql_result);
+            	  	  return -1;
+                   }else{
+                   
+                   
+                   ->
+                   
+                                      //20171218 add
+                   //取出SSYC_GS内容，如果不为NULL，则输出
+                   if (mysql_row[4] == NULL){
+                	   errorPrint(LOGFILE,"ERR-C-Get a null column SSYC_GS in %s.\n","错误-C-%s表SSYC_GS列为空.\n", table_name_YC_SSYCSJ);
+
+                	   //self_mysql_free_result(selfMysqlp,mysql_result);
+            	  	  //return -1;
+                	   strSSYC_GS="0";
+                	                   	   
+                	   //self_mysql_free_result(selfMysqlp,mysql_result);
+            	  	  //return -1;
+                	   strYY_ID="255";
+                	   
+            	  	  //self_mysql_free_result(selfMysqlp,mysql_result);
+            	  	  //return -1;
+                	   strSSYC_CD="0";            	  	  
+                	   
+            	  	    //return -1;
+                	   ssyc_nr[0]=0; 
+            	  	  
+            	  	  
+20171228
+1.
+typedef struct zqssyc_s{
+	ssyc_head_t ssyc_head;
+	//指令相关信息
+	__uint8_t zlCount; //指令计数
+	__uint8_t zlLx; //最近指令类型
+	__uint8_t zlBh; //最近指令编号
+	__uint8_t zlYyId; //最近指令的YY_ID
+	
+	
+2.
+	//get zl_zxjg
+
+	__int8_t zlZxjg; //最近指令的ZL_ZXJG
+
+	//填写当前节点信息
+	string strSqlFetchJZLZXJG = "select ZL_ZXJG from GJFW_YK_ZL where YY_ID = "+
+			int2String(gZlYyId) +
+			" and ZL_LX = "+
+			int2String(gZlLx)+
+			" and ZL_BH = "+
+			int2String(gZlBh)+
+	
+	->
+	
+				try_times++;
+			sleep(10);
+			
+			
+			
+20180108
+1. xiu gai "typedef struct zqssyc_s{"
+	//20180108
+	//ying yong zhuang tai
+	__uint32_t yyZt[8];
+	//shi fou bao huo
+	__uint32_t sfBh[8];
+	//shi fou zi qi dong
+	__uint32_t sfZqd[8];
+	//shi fou an zhuang
+	__uint32_t sfAz[8];
+}zqssyc_t;
+
+2.
+RUN_ON_711
+->
+_RUN_ON_711
+
+3.
+//如果定义，则发送slow周期遥测
+#define _SEND_ZQ_YC_SLOWLY
+
+
+4.
+//实时遥测数据采集定时器超时时间
+#define SSYC_CJ_INTERVAL (1*(NUM_OF_BASE_TIMER_TICK_FOR_A_SECOND)) //1s采集一次延时遥测数据
+
+//实时遥测历史数据写数据库超时时间
+#define SSYCLS_STORE_INTERVAL (10*(NUM_OF_BASE_TIMER_TICK_FOR_A_SECOND)) //10s采集一次延时遥测数据
+
+//socket发送定时器超时时间
+#define SOCKET_SEND_INTERVAL (1*(NUM_OF_BASE_TIMER_TICK_FOR_A_SECOND)) //1s发送一次socket数据
+
+//输出统计信息超时时间
+#define SEND_ZQYC_INTERVAL (30*(NUM_OF_BASE_TIMER_TICK_FOR_A_SECOND)) //30s输出一次统计信息
+->
+//socket发送定时器超时时间
+#ifdef _SEND_ZQ_YC_SLOWLY
+#define SOCKET_SEND_INTERVAL (30*(NUM_OF_BASE_TIMER_TICK_FOR_A_SECOND)) //30s发送一次socket数据
+//实时遥测数据采集定时器超时时间
+#define SSYC_CJ_INTERVAL (30*(NUM_OF_BASE_TIMER_TICK_FOR_A_SECOND)) //30s采集一次实时遥测数据
+//实时遥测历史数据写数据库超时时间
+#define SSYCLS_STORE_INTERVAL (60*(NUM_OF_BASE_TIMER_TICK_FOR_A_SECOND)) //60s写数据库一次实时遥测数据
+#else
+//socket发送定时器超时时间
+#define SOCKET_SEND_INTERVAL (1*(NUM_OF_BASE_TIMER_TICK_FOR_A_SECOND)) //1s发送一次socket数据
+//实时遥测数据采集定时器超时时间
+#define SSYC_CJ_INTERVAL (1*(NUM_OF_BASE_TIMER_TICK_FOR_A_SECOND)) //1s采集一次实时遥测数据
+//实时遥测历史数据写数据库超时时间
+#define SSYCLS_STORE_INTERVAL (10*(NUM_OF_BASE_TIMER_TICK_FOR_A_SECOND)) //10s写数据库一次实时遥测数据
+#endif
+
+5.
+//发周期实时遥测数据
+	if(gBaseTimerCount%SEND_ZQYC_INTERVAL == 0){
+#ifdef _SEND_SOCKET_DATA
+#ifdef _SEND_ZQ_SSYC
+			tmpPrint(LOGFILE,"TMP---gBaseTimerCount = %llu.\n","临时---gBaseTimerCount = %llu.\n",gBaseTimerCount);
+			tmpPrint(LOGFILE,"TMP---SOCKET_SEND_INTERVAL = %d.\n","临时---SOCKET_SEND_INTERVAL = %d.\n",SOCKET_SEND_INTERVAL);
+
+			if(gBaseTimerCount%SOCKET_SEND_INTERVAL == 0){
+					prgPrint(LOGFILE,"PRG---It is time to send Ssyc data.\n", "过程---准备发送实时遥测数据.\n");
+						sendZqSsyc();
+			}
+#endif
+#endif
+	}
+	
+->
+#ifdef _SEND_SOCKET_DATA
+#ifdef _SEND_ZQ_SSYC
+
+		tmpPrint(LOGFILE,"TMP---gBaseTimerCount = %llu.\n","临时---gBaseTimerCount = %llu.\n",gBaseTimerCount);
+		tmpPrint(LOGFILE,"TMP---SOCKET_SEND_INTERVAL = %d.\n","临时---SOCKET_SEND_INTERVAL = %d.\n",SOCKET_SEND_INTERVAL);
+
+		if(gBaseTimerCount%SOCKET_SEND_INTERVAL == 0){
+				prgPrint(LOGFILE,"PRG---It is time to send Ssyc data.\n", "过程---准备发送实时遥测数据.\n");
+					sendZqSsyc();
+		}
+#endif
+#endif
+
+6.add
+	//////////////////////////////////////////////////////////////
+	//清理应用GJFW_YC_SSYCSJ表
+	//////////////////////////////////////////////////////////////
+	string strTruncateSSYCLSSJ = "truncate table " +
+			string(table_name_YC_SSYCSJ) +
+			";";
+
+	sqlPrint(LOGFILE,"SQL---Truncate table %s: %s .\n","SQL---清除%s表SQL: %s.\n",table_name_YC_SSYCSJ,table_name_YC_SSYCSJ.c_str());
+
+	ret = self_mysql_query(selfMysqlp, table_name_YC_SSYCSJ.c_str());
+
+    if (!ret) {
+    	prgPrint(LOGFILE,"PRG---Truncate table %s, affact %d rows.\n","过程---清除%s表 ，影响%d行.\n",
+        		 table_name_YC_SSYCSJ,
+                 self_mysql_affected_rows(selfMysqlp));
+     } else {
+         errorPrint(LOGFILE, "ERR---Truncate table %s error %d: %s.\n",  "错误---清除%s表失败（错误编号：%d，%s）.\n",
+        		 table_name_YC_SSYCSJ, self_mysql_errno(selfMysqlp), self_mysql_error(selfMysqlp));
+         return_ZL_ZXJG(zl_id,ZXJG_SB);
+         return -4;
+     }
+     
+7. add
+//time wait for next db connect
+#define SLEEP_FOR_NEXT_DB_CONNECT 10
+
+8.add ssyc
+
+  //get yyzt begin////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ 	//
+ 	string strSqlFetchJYYZT = "select YY_ID,YY_YXZT,YY_SFBH,YY_ZQDSFSN,YY_AZZT from GJFW_JKGL_YYZT;";
+
+  	//get ZL_ZXJG
+  	int ret2 = self_mysql_query(selfMysqlp, strSqlFetchJYYZT.c_str());
+      if (!ret2) {
+           prgPrint(LOGFILE,"PRG-C-Select from %s, affact %d rows.\n","过程-C-查询%s表，影响%d行.\n", table_name_JKGL_YYZT,self_mysql_affected_rows(selfMysqlp));
+           MYSQL_RES *mysql_result = NULL;
+
+           mysql_result = self_mysql_store_result(selfMysqlp);
+
+
+           if (NULL != mysql_result){
+               int num_row=self_mysql_num_rows(selfMysqlp,mysql_result);
+               //printf("get %d row\n",num_row);
+               if (0 != num_row){
+
+            	   //reset yyzt
+            	   int ii;
+            	   for (ii=0;ii<256;ii++){
+            		   gSsycStruct.zqssycData[index].yyZt[ii]=0;
+            	   }
+            	   for (ii=0;ii<8;ii++){
+            		   gSsycStruct.zqssycData[index].sfBh[ii]=0;
+            		   gSsycStruct.zqssycData[index].sfZqd[ii]=0;
+            		   gSsycStruct.zqssycData[index].sfAz[ii]=0;
+            	   }
+
+            	   //  MYSQL_ROW mysql_row=self_mysql_fetch_row(selfMysqlp,mysql_result);
+            	   //逐条读取遥测配置项并加入链表数组对应项
+            	   MYSQL_ROW mysql_row = NULL;
+            	   while((mysql_row = self_mysql_fetch_row(selfMysqlp,mysql_result))){
+            		   /*
+                       if (NULL == mysql_row){
+
+                     	  	  self_mysql_free_result(selfMysqlp,mysql_result);
+                     	  	  errorPrint(LOGFILE,"ERR-C-Can not fetch any  yyzt information，NULL == mysql_row.\n","错误-C-无法取得YYZT信息，NULL == mysql_row.\n");
+                     	  	  return -1;
+                       }
+                       */
+
+                        int yyId = 0, yyZt = 0, sfBh = 0, sfZqd = 0, sfAz = 0;
+
+                        //取出YY_ID,YY_YXZT,YY_SFBH,YY_ZQDSFSN内容，如果不为NULL，则记录
+                        if (mysql_row[0] == NULL){
+
+                     	   errorPrint(LOGFILE,"ERR-C-Get a null column YY_ID in %s.\n","错误-C-%s表YY_ID列为空.\n", table_name_JKGL_YYZT);
+                 	  	  self_mysql_free_result(selfMysqlp,mysql_result);
+                      	  //return -1;
+                        }else{
+
+                        	yyId = atoi(mysql_row[0]);
+                        }
+
+                        //取出YY_YXZT内容，如果不为NULL，则记录
+                        if (mysql_row[1] == NULL){
+
+                     	   errorPrint(LOGFILE,"ERR-C-Get a null column YY_YXZT in %s.\n","错误-C-%s表YY_YXZT列为空.\n", table_name_JKGL_YYZT);
+                 	  	  self_mysql_free_result(selfMysqlp,mysql_result);
+                      	  //return -1;
+                        }else{
+
+                        	yyZt = atoi(mysql_row[1]);
+                        }
+
+                        //取出YY_SFBH内容，如果不为NULL，则记录
+                        if (mysql_row[2] == NULL){
+
+                     	   errorPrint(LOGFILE,"ERR-C-Get a null column YY_SFBH in %s.\n","错误-C-%s表YY_SFBH列为空.\n", table_name_JKGL_YYZT);
+                 	  	  self_mysql_free_result(selfMysqlp,mysql_result);
+                      	  //return -1;
+                        }else{
+
+                        	sfBh = atoi(mysql_row[2]);
+                        }
+
+                        //取出YY_ZQDSFSN内容，如果不为NULL，则记录
+                        if (mysql_row[3] == NULL){
+
+                     	   errorPrint(LOGFILE,"ERR-C-Get a null column YY_ZQDSFSN in %s.\n","错误-C-%s表YY_ZQDSFSN列为空.\n", table_name_JKGL_YYZT);
+                 	  	  self_mysql_free_result(selfMysqlp,mysql_result);
+                      	  //return -1;
+                        }else{
+
+                        	sfZqd = atoi(mysql_row[3]);
+                        }
+
+                        //取出YY_AZZT内容，如果不为NULL，则记录
+                        if (mysql_row[4] == NULL){
+
+                     	   errorPrint(LOGFILE,"ERR-C-Get a null column YY_AZZT in %s.\n","错误-C-%s表YY_AZZT列为空.\n", table_name_JKGL_YYZT);
+                 	  	  self_mysql_free_result(selfMysqlp,mysql_result);
+                      	  //return -1;
+                        }else{
+                        	sfAz = atoi(mysql_row[4]);
+                        }
+
+
+
+                        //compute , i,j for sfBh[i]
+                        int i,j;
+                        if (yyId<32)
+                        	i=0;
+                        else if(yyId<64)
+                        	i=1;
+                        else if (yyId<96)
+                        	i=2;
+                        else if (yyId<128)
+                        	i=3;
+                        else if (yyId<160)
+                        	i=4;
+                        else if (yyId<192)
+                        	i=5;
+                        else if (yyId <224)
+                        	i=6;
+                        else if (yyId < 256)
+                        	i=7;
+
+                        j = (yyId%32);
+
+                        //record sfBh
+                        if (sfBh>0)
+                        	gSsycStruct.zqssycData[index].sfBh[i] |= 2147483648u>>j;
+                        else
+                        	gSsycStruct.zqssycData[index].sfBh[i] &= ~(2147483648u>>j);
+
+                        //record sfZqd
+                        if (sfZqd>0)
+                        	gSsycStruct.zqssycData[index].sfZqd[i] |= 2147483648u>>j;
+                        else
+                        	gSsycStruct.zqssycData[index].sfZqd[i] &= ~(2147483648u>>j);
+
+                        //record sfAz
+                         if (sfAz>0)
+                        	 gSsycStruct.zqssycData[index].sfAz[i] |= 2147483648u>>j;
+                         else
+                        	 gSsycStruct.zqssycData[index].sfAz[i] &= ~(2147483648u>>j);
+
+
+                         //record yyZt
+                         if (sfAz>0)
+                        	 gSsycStruct.zqssycData[index].yyZt[i] |= 2147483648u>>j;
+                         else
+                        	 gSsycStruct.zqssycData[index].yyZt[i] &= ~(2147483648u>>j);
+
+            	   }//while((mysql_row = self_mysql_fetch_row(selfMysqlp,mysql_result)))
+
+               }// if (0 != num_row){
+               self_mysql_free_result(selfMysqlp,mysql_result);
+           }// if (NULL != mysql_result){
+      }//if (!ret)
+      else {
+      	//如果插入延时遥测数据失败，继续运行
+          errorPrint(LOGFILE, "ERR-C-Select from %s error %d: %s.\n", "错误-C-查询%s表失败（错误编号：%d，%s）.\n",table_name_JKGL_YYZT, self_mysql_errno(selfMysqlp), self_mysql_error(selfMysqlp));
+      }//else
+      //get zl_zxjg
+     //get yyzt end/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+9.
+//如果定义，则发送struct周期遥测
+#define _USE_SSYC_IN_STRUCT
+	
+	
+	
+20180110
+1.
+#define ZLLX_XT 0x80	//heart beat指令类型
+//heart beat指令编号
+#define ZLBH_XT_XT 0x00
+
+2.
+int onZL_XT(int zl_id,unsigned char* ucharZL_NR){
+	GET_FUNCSEQ
+	fucPrint(LOGFILE,"FUC+++YKYC.cpp FUNC: onZL_XT is called.\n","调用+++YKYC.cpp的函数: onZL_KZZL_PZ.\n");
+
+	//取得本线程对应的数据库链接
+	mysql_t * selfMysqlp = NULL;
+	selfMysqlp = getMysql();
+	if (NULL == selfMysqlp){
+		errorPrint(LOGFILE,"ERR---Can not get mysql connection for this thread.\n","错误---无法取得本线程的mysql句柄.\n");
+		return -1;
+	}
+
+	return_ZL_ZXJG(zl_id,ZXJG_JS);
+	return_ZL_ZXJG(zl_id,ZXJG_CG);
+
+	return 1;
+}
+
+3.
+            	 //add heart beat begin///////////////////////////////////
+            	 case ZLLX_XT://如果heart beat指令
+            		 //进一步判指令编号
+                	 switch (intZL_BH){
+
+                	 case ZLBH_XT_XT: //配置指令
+                		 onZL_XT(intZL_ID,ucharZL_NR);
+                		 break;
+                	 default:
+                		 //反馈执行结果为指令类编号超出正确范围
+                		 return_ZL_ZXJG(intZL_ID,ZXJG_ZLCCCLFW);
+                		 msgPrint(LOGFILE,"MSG---error! Get an unknown ZLLX_XT for YYID_CKFW with error ZL_BH: %d.","消息---指令错误! heart beat指令的编号超出正确范围: %d.",intZL_BH);
+                 		 break;
+                	 }
+
+                	 break;
+                	 //add heart beat end///////////////////////////////////
+                	 
+4.
+	//heart beat指令数
+	__uint32_t packageHeartBeat;
+	__uint32_t countOfReConnZlServer;
+	
+}total_t;
+5.
+        //如果取得heart beat指令
+        if (ZLLX_XT == pzlFrameHeader->zllx){
+        	msgPrint(LOGFILE,"MSG-K-Get a heart beat Zl\n","消息-K-遥控线程取得heart beat指令\n");
+        	//DEBUG_STOP
+
+        	gZLConnectionTimeOut = MAX_ZL_CONNECT_TIMEOUT;
+
+        	/////////////////////////////////////////
+        	//字数统计
+        	/////////////////////////////////////////
+            //统计解析处的指令数
+            gTotal.packageHeartBeat ++;
+            msgPrint(LOGFILE,"MSG-K-YK recv 1 heart beat ZL (total %lu ZL) .\n","消息-K-遥控线程取得1条heart beat指令 (共取得%lu条heart beat指令).\n",gTotal.packageHeartBeat);
+
+        	continue;
+        }
+        
+6.
+#define MAX_CONNECT_TIMES 5
+->
+#define MAX_DB_CONNECT_TIMES 5
+
+7.
+//////////////////////
+//JCDY connect time out count
+//////////////////////
+#define MAX_ZL_CONNECT_TIMEOUT 15
+
+8.
+/////////////////////////////////
+//ZL connect timeout count
+/////////////////////////////////
+int gZLConnectionTimeOut;
+
+9.
+	/////////////////////////////////
+	//ZL connect timeout count
+	/////////////////////////////////
+	 gZLConnectionTimeOut = MAX_ZL_CONNECT_TIMEOUT;
+	 
+10.
+#define ZL_CONNECTION_INTERVAL (1*(NUM_OF_BASE_TIMER_TICK_FOR_A_SECOND)) //1s gZLConnectionTimeOut--
+ 
+ 11.
+	//reconnect zl server if gZLConnectionTimeOut<=0
+	if(gBaseTimerCount%ZL_CONNECTION_INTERVAL == 1){
+	    prgPrint(LOGFILE,"PRG---It is time to deal with zl.\n", "过程---准备执行指令");
+	    //处理给自己的指令
+	    gZLConnectionTimeOut--;
+	    if (gZLConnectionTimeOut<=0){
+	    	gZLConnectionTimeOut = MAX_ZL_CONNECT_TIMEOUT;
+	    	zlReconnect();
+	    }
+	}
+	
+12.
+void zlReconnect(void){
+	GET_FUNCSEQ
+	fucPrint(LOGFILE,"FUC+++YKYC.cpp FUNC: zlReconnect is called.\n","调用+++YKYC.cpp的函数: zlReconnect.\n");
+	////////////////////////////////
+	//链接服务器，如果失败就返回-2
+	///////////////////////////////
+#ifdef	_CONNECT_TO_SERVER
+	//断开链接
+	closeSocket();
+
+	if (0 >= connectSocket()){
+		errorPrint(LOGFILE,"ERR---Can't connect ZL server:%d.\n","错误---链接服务器失败（错误编号：%d）.\n", errno);
+		//return -2;//-2表示无法链接到指令转发服务
+	}
+	gTotal.countOfReConnZlServer++;
+
+}total_t;
+
+13 
+change some msgPrint to prgPrint
+
+14
+//如果定义，则print to file
+#define _PRINT_TO_FILE
+
+15.
+#ifdef _PRINT_TO_FILE
+#define FILENAME "output"
+#define LOGFILE gOutput
+#else
+#define LOGFILE stdout
+#endif
+
+16. global.h, global.cpp
+#ifdef _PRINT_TO_FILE
+FILE * gOutput;
+#endif
+
+#ifdef _PRINT_TO_FILE
+extern FILE * gOutput;
+#endif
+
+16.
+int init(void){
+
+#ifdef _PRINT_TO_FILE
+gOutput = fopen(FILENAME,FILEMODE);
+#endif
+
+17.
+quit()
+...
+	#ifdef _PRINT_TO_FILE
+	 fclose(gOutput);
+	#endif
+
+20180111
+1.
+        //reset gZLConnectionTimeOut whatever recv
+        gZLConnectionTimeOut = MAX_ZL_CONNECT_TIMEOUT;
+
+2.
+ 	gSsycStruct.zqssycData[index].dqSjMs = (long)tv.tv_sec + UTC_NTP;
+->
+ 	__uint32_t uInt32Tmp;
+ 	uInt32Tmp=(long)tv.tv_sec + UTC_NTP;
+ 	gSsycStruct.zqssycData[index].dqSjMs = htonl(uInt32Tmp);
+
+
+3.
+                	   gSsycStruct.zqssycData[index].kyKj = atoi(mysql_row[0]);
+->
+                	 	__uint32_t uInt32Tmp;
+                	 	uInt32Tmp=atoi(mysql_row[0]);
+                	 	gSsycStruct.zqssycData[index].kyKj = htonl(uInt32Tmp);                	   
+.
+4.
+                	   gSsycStruct.zqssycData[index].cpu = atof(mysql_row[2]);
+
+->|     5 |   NULL |     1 | /home/apps/5/app |          5 |       1 | 1970-01-01 00:24:21 | NULL    |          0 |       0 |       5
+                   	 	float fTmp;
+                  	 	fTmp= atof(mysql_row[2]);
+                  	    gSsycStruct.zqssycData[index].cpu = htonl(fTmp);
+
+5.
+                   int jj;
+                   for(jj=0;jj<8;jj++){
+                	   
+                  	 	__uint32_t uInt32Tmp;
+                  	 	uInt32Tmp=gSsycStruct.zqssycData[index].yyZt[ii];
+                  	 	gSsycStruct.zqssycData[index].yyZt[ii] = htonl(uInt32Tmp);
+
+                  	 	uInt32Tmp=gSsycStruct.zqssycData[index].sfBh[ii];
+                  	 	gSsycStruct.zqssycData[index].sfBh[ii] = htonl(uInt32Tmp);
+                  	 	
+                  	 	uInt32Tmp=gSsycStruct.zqssycData[index].sfZqd[ii];
+                  	 	gSsycStruct.zqssycData[index].sfZqd[ii] = htonl(uInt32Tmp);
+                  	 	
+                  	 	uInt32Tmp=gSsycStruct.zqssycData[index].sfAz[ii];
+                  	 	gSsycStruct.zqssycData[index].sfAz[ii] = htonl(uInt32Tmp);
+                   }//for(jj=0;jj<8;jj++){
+                    	 	
+
+6.
+	//20180108
+	//ying yong zhuang tai
+	__uint32_t yyZt[8];
+	//shi fou bao huo
+	__uint32_t sfBh[8];
+	//shi fou zi qi dong
+	__uint32_t sfZqd[8];
+	//shi fou an zhuang
+	__uint32_t sfAz[8];
+}zqssyc_t;
+->
+	//ying yong zhuang tai
+	__uint8_t yyZt[32];
+	//shi fou bao huo
+	__uint8_t sfBh[32];
+	//shi fou zi qi dong
+	__uint8_t sfZqd[32];
+	//shi fou an zhuang
+	__uint8_t sfAz[32];
+}zqssyc_t;                    	 	
+
+7.
+
+#define DB_HOST "192.168.1.32"
+->
+#define DB_HOST "127.0.0.1"
+
+
+
+20180111
+alter table GJFW_JKGL_YYZT add column YY_CZ int default 0;
+
+20180112
+1.
+	__uint8_t YyBfb[5];//指定磁盘已用百分比
+	float cpu;//cpu占用率
+->
+
+	__uint8_t YyBfb;//指定磁盘已用百分比
+	__uint32_t cpu;//cpu占用率
+	
+2.
+                	   int i;
+                	   for (i=0;i<5;i++){
+                		   gSsycStruct.zqssycData[index].YyBfb[i] =  mysql_row[1][i];
+                	   }
+->
+gSsycStruct.zqssycData[index].YyBfb =  atof(mysql_row[1]);
+
+3.
+                  	 	float fTmp;
+                  	 	fTmp= atof(mysql_row[2]);
+                  	    //gSsycStruct.zqssycData[index].cpu = htonl(fTmp);
+                  	  gSsycStruct.zqssycData[index].cpu =ntohl(__uint32_t(fTmp));
+->
+
+		
+4.include.h
+#include <net/if.h>
+
+5.const.h
+#define IF_NAME "eth0"
+
+6.
+/////////////////////////////////////
+//Device id
+///////////////////////////////////////
+__int8_t gDeviceId;
+
+7.
+/////////////////////////////////////
+//Device id
+///////////////////////////////////////
+extern __int8_t gDeviceId;
+
+8.
+//如果定义，则for all node
+#define _GET_IP_SELF
+
+
+9.
+	GET_FUNCSEQ
+	fucPrint(LOGFILE,"FUC+++YKYC.cpp FUNC: init is called.\n","调用+++YKYC.cpp 的函数: init.\n");
+
+    char ip[32] = {0};
+
+    get_local_ip(IF_NAME, ip);
+
+    if(0 != strcmp(ip, ""))
+        printf("***********************************************%s ip is %s\n",IF_NAME, ip);
+
+#ifdef _GET_IP_SELF
+    if (ip == "192.168.1.30")
+    	gDeviceId = 0x30;
+    else if (ip == "192.168.1.31")
+    	gDeviceId = 0x31;
+    else if (ip == "192.168.1.32")
+    	gDeviceId = 0x32;
+    else if (ip == "192.168.1.33")
+    	gDeviceId = 0x33;
+    else{
+    	printf("can not get ip address.\n");
+    	return -3 ;
+    }
+#else
+    gDeviceId = DEVICE_ID
+#endif
+
+10.
+if (DEVICE_ID != pzlFrameHeader->sbid){
+->
+        if (gDeviceId != pzlFrameHeader->sbid){
+        
+11.
+#define RET_ERR_GETIP -8 //-2表示get ip
+
+12.
+	//////////////////
+	//初始化
+	//////////////////
+	int ret = init();
+	if (-1 == ret){
+		//errorPrint(LOGFILE,"ERR---Can't connect DB:%s.\n", strerror(ret));
+		quit(RET_ERR_CONNECT_DB);
+		return RET_ERR_CONNECT_SERVER;//表示连库失败
+	}
+	else if (-2 == ret){
+		//errorPrint(LOGFILE, "ERR---Can't connect ZL Server:%s.\n", strerror(ret));
+		quit(RET_ERR_CONNECT_SERVER);
+		return RET_ERR_CONNECT_SERVER; //表示链接服务失败
+	}
+	
+->
+	//////////////////
+	//初始化
+	//////////////////
+	int ret = init();
+	if (-1 == ret){
+		//errorPrint(LOGFILE,"ERR---Can't connect DB:%s.\n", strerror(ret));
+		quit(RET_ERR_CONNECT_DB);
+		return RET_ERR_CONNECT_SERVER;//表示连库失败
+	}
+	else if (-2 == ret){
+		//errorPrint(LOGFILE, "ERR---Can't connect ZL Server:%s.\n", strerror(ret));
+		quit(RET_ERR_CONNECT_SERVER);
+		return RET_ERR_CONNECT_SERVER; //表示链接服务失败
+	}else if (-3 == ret){
+		//errorPrint(LOGFILE, "ERR---Can't connect ZL Server:%s.\n", strerror(ret));
+		quit(RET_ERR_GETIP);
+		return RET_ERR_GETIP; //表示链接服务失败
+	}
+	
+	
+	13.
+	  char ip[32] = {0};
+    /*
+    const char char30 = "192.168.1.30";
+    const char char31 = "192.168.1.31";
+    const char char32 = "192.168.1.32";
+    const char char33 = "192.168.1.33";
+*/
+    char charTmp[32];
+
+    get_local_ip(IF_NAME, ip);
+
+    if(0 != strcmp(ip, "")){
+        printf("***********************************************%s ip is %s\n",IF_NAME, ip);
+        sprintf(charTmp,"%s",ip);
+        int i;
+        for (i=0;i<strlen(charTmp);i++){
+        	printf(" %d", charTmp[i]);
+        }
+#ifdef _GET_IP_SELF
+        /*
+    if (charTmp == "192.168.1.30")
+    	gDeviceId = 0x30;
+    else if (charTmp == "192.168.1.31")
+    	gDeviceId = 0x31;
+    else if (charTmp == "192.168.1.32")
+    	gDeviceId = 0x32;
+    else if (charTmp == "192.168.1.33")
+    	gDeviceId = 0x33;
+    else{
+    	printf("ip address is not match.\n");
+    	return -3 ;
+    }
+    */
+        if (charTmp[strlen(charTmp)-1] ==48)
+        	gDeviceId = 0x30;
+        else if (charTmp[strlen(charTmp)-1] ==49)
+        	gDeviceId = 0x31;
+        else if(charTmp[strlen(charTmp)-1] ==50)
+        	gDeviceId = 0x32;
+        else if(charTmp[strlen(charTmp)-1] ==51)
+        	gDeviceId = 0x33;
+        else{
+        	printf("ip address is not match.\n");
+        	return -3 ;
+        }
+        printf("***********************************************Dvice id is %d\n", gDeviceId);
+
+#else
+    gDeviceId = DEVICE_ID
+#endif
+    }else
+    {
+    	printf("can not get ip address.\n");
+    	return -3 ;
+    }
+    
+    
+20180308
+1.
+	if (-1 == ret){
+		//errorPrint(LOGFILE,"ERR---Can't connect DB:%s.\n", strerror(ret));
+		quit(RET_ERR_CONNECT_DB);
+		return RET_ERR_CONNECT_SERVER;//表示连库失败
+	}
+	else if (-2 == ret){
+		//errorPrint(LOGFILE, "ERR---Can't connect ZL Server:%s.\n", strerror(ret));
+		quit(RET_ERR_CONNECT_SERVER);
+		//return RET_ERR_CONNECT_SERVER; //表示链接服务失败
+	}else if (-3 == ret){
+		//errorPrint(LOGFILE, "ERR---Can't connect ZL Server:%s.\n", strerror(ret));
+		quit(RET_ERR_GETIP);
+		return RET_ERR_GETIP; //表示get ip失败
+	}
+	->
+	if (-1 == ret){
+		//errorPrint(LOGFILE,"ERR---Can't connect DB:%s.\n", strerror(ret));
+		quit(RET_ERR_CONNECT_DB);
+		return RET_ERR_CONNECT_SERVER;//表示连库失败
+	}
+	else if (-2 == ret){
+		//errorPrint(LOGFILE, "ERR---Can't connect ZL Server:%s.\n", strerror(ret));
+		quit(RET_ERR_CONNECT_SERVER);
+		return RET_ERR_CONNECT_SERVER; //表示链接服务失败
+	}else if (-3 == ret){
+		//errorPrint(LOGFILE, "ERR---Can't connect ZL Server:%s.\n", strerror(ret));
+		quit(RET_ERR_GETIP);
+		return RET_ERR_GETIP; //表示链接服务失败
+	}
+	
+2.
+	if (0 >= connectSocket()){
+		errorPrint(LOGFILE,"ERR---Can't connect ZL server:%d.\n","错误---链接服务器失败（错误编号：%d）.\n", errno);
+		return -2;//-2表示无法链接到指令转发服务
+	}
+->
+	if (0 >= connectSocket()){
+		errorPrint(LOGFILE,"ERR---Can't connect ZL server:%d.\n","错误---链接服务器失败（错误编号：%d）.\n", errno);
+		//return -2;//-2表示无法链接到指令转发服务
+	}
+3.
+from:
+	//////////////////
+	//初始化
+	//////////////////
+	//int ret = init();
+	int ret=0;
+	while(1!=ret){
+		sleep(3);
+		ret = init();
+	}
+	
+to:
+	//////////////////
+	//初始化
+	//////////////////
+	int ret = init();
+
+4.add in main()
+	//update sxxt immediately after init()
+    //更新监控管理服务应用状态表
+    updataYYZT(RET_RUNNING);
+    
+    
+    
+2018-04-04
+1.为了在虚拟卫星上运行，增加了一个宏定义"_RUN_ON_XNWX"。
+	当此宏有定义时，不再定义和链接集成单元有关的常量（包括集成单元IP、端口），增加定义常量（中央数据库的地址、库名、用户名、口令、虚拟卫星ID），设备ID固定为0x20.
+	当此宏有定义时，不再定义和链接集成单元有关的变量（包括是否链接、socket，指令缓冲区），增加是否链接中央数据库，2个分别用于“接收”和“发送”的中央数据库链接，以及用户id。
+	当此宏有定义时，不再通过readSocket（）接收指令，改为调用recvZl（），后者根据是否用于虚拟卫星分别调用readZlfromSocket()和readZlfromCenterDb()。其中readZlfromSocket()有原有函数readSocket()改名而来。
+	当此宏有定义时，不再调用sendZqSSyc()，改由sendZqSSycOnXNWX()发送周期遥测数据。sendZqSSyc()改名为sendZqSsycOnSocket().
+	当此宏有定义时，不再调用sendAxSSyc()，改由sendAxSSycOnXNWX()发送按需遥测数据。sendAxSSyc()改名为sendAxSsycOnSocket().
+	当此宏有定义时，由于设计集成单元socket链接的常量、变量不再定义，所以使用到它们的函数或代码段也都被编译开关关闭。

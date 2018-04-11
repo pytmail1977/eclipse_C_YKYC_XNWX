@@ -1,0 +1,1 @@
+alter table GJFW_JKGL_YYZT add column YY_YXJ tinyint;

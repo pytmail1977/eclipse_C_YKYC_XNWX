@@ -1,0 +1,14 @@
+/*
+ * YC.h
+ *
+ *  Created on: 2017年5月5日
+ *      Author: pyt64
+ */
+
+#ifndef YC_H_
+#define YC_H_
+#include "struct.h"
+#include "commonTool.h"
+void* main_loop_of_YC(void *arg);
+
+#endif /* YC_H_ */

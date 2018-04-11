@@ -1,0 +1,13 @@
+alter table GJFW_SZ_SZSJ add column SZSJB_JSSJ datetime;
+
+create table GJFW_YC_SSYCSJ
+(
+   SSYC_ID             int not null auto_increment,
+   YY_ID                tinyint,
+   SSYC_YXJ            int,
+   SSYC_NR	       blob,
+   primary key (SSYC_ID)
+);
+alter table GJFW_YC_SSYCSJ add constraint FK_Relationship_8 foreign key (YY_ID) references GJFW_JKGL_YYZT (YY_ID) on delete restrict on update restrict;
+
+alter table GJFW_YC_SSYCSJ add constraint FK_Relationship_8 foreign key (YY_ID) references GJFW_JKGL_YYZT (YY_ID) on delete restrict on update restrict;

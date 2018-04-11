@@ -1,0 +1,62 @@
+
+drop table if exists GJFW_LRXJ_ZP;
+
+drop table if exists GJFW_SLT;
+
+drop table if exists GJFW_YST;
+
+create table GJFW_SLT
+(
+   SLT_WJID             int not null auto_increment,
+   SLT_YWJID       	int,
+   YY_ID                tinyint,
+   SLT_YWJLJ            varchar(4096),
+   SLT_YWJTCD           int,
+   SLT_YWJK             int,
+   SLT_YWJG             int,
+   SLT_YWJS             int,
+   SLT_CS               tinyint,
+   SLT_WJLJ             varchar(4096),
+   SLT_WJK              int,
+   SLT_WJG              int,
+   SLT_ZXJG             tinyint,
+   primary key (SLT_WJID)
+);
+
+create table GJFW_YST
+(
+   YST_WJID             int not null auto_increment,
+   YST_YWJID 		 int,
+   YY_ID                tinyint comment,
+   YST_YWJLJ            varchar(4096),
+   YST_YWJTCD           int,
+   YST_YWJK             int,
+   YST_YWJG             int,
+   YST_YWJS             int,
+   YST_CS               tinyint,
+   YST_WJLJ             varchar(4096),
+   YST_ZXJG             tinyint comment ,
+   primary key (YST_WJID)
+);
+
+create table GJFW_LRXJ_ZP
+(
+   ZPWJ_ID              int not null auto_increment,
+   XJZT_ID              int not null,
+   ZPWJ_LJ              varchar(4096),
+   ZPWJ_PSSJ            datetime comment 'ÒÔÊÕµœÕÕÆ¬ÎÄŒþµÄÊ±ŒäÎª×Œ£¬ÓÉÖÇÄÜœÚµãÌîÐŽ',
+   ZPWJ_GS              tinyint comment '0£ºÎŽÖª£¬1£ºTIFF£¬2£ºPNG£¬3£ºJPEG£šÐèÒªŽË×Ö¶ÎÃŽ£¿£©',
+   ZPWJ_DX              int comment 'ŽóÐ¡¶ËžúÖžÁîÍ³Ò»',
+   ZPWJ_BGSJ            int comment 'µ¥Î»£ºÎ¢Ãë£¬×ÖœÚÐò£ºÍ¬Ïà»úÍšÐÅÐ­Òé¹æ¶š£¬ŽÓœÓÊÕµœµÄÕÕÆ¬ÎÄŒþÍ·ÖÐ¶ÁÈ¡£¬ÓÉÏà»úÌîÐŽ',
+   ZPWJ_BGZY            tinyint comment 'µ¥Î»£º±¶Êý£¬ŽÓœÓÊÕµœµÄÕÕÆ¬ÎÄŒþÍ·ÖÐ¶ÁÈ¡£¬ÓÉÏà»úÌîÐŽ',
+   ZPWJ_PSZT1           int comment '×ËÌ¬ËÄÔªÊý1£¬·ÃÎÊÆœÌšÊýŸÝ·þÎñ»ñµÃ',
+   ZPWJ_PSZT2           int comment '×ËÌ¬ËÄÔªÊý2£¬·ÃÎÊÆœÌšÊýŸÝ·þÎñ»ñµÃ',
+   ZPWJ_PSZT3           int comment '×ËÌ¬ËÄÔªÊý3£¬·ÃÎÊÆœÌšÊýŸÝ·þÎñ»ñµÃ',
+   ZPWJ_PSZT4           int comment '×ËÌ¬ËÄÔªÊý4£¬·ÃÎÊÆœÌšÊýŸÝ·þÎñ»ñµÃ',
+   ZPWJ_K          	 int  ,
+   ZPWJ_G          	 int  ,
+   ZPWJ_S          	 int  ,
+   ZPWJ_YST_LJ              varchar(4096),
+   ZPWJ_SLT_LJ              varchar(4096),
+   primary key (ZPWJ_ID)
+);
