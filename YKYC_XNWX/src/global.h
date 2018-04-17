@@ -154,6 +154,10 @@ extern __int8_t gDeviceId;
 #ifdef _RUN_ON_XNWX
 extern mysql_t gMysql_centerDBforYK;
 extern mysql_t gMysql_centerDBforYC;
+//虚拟卫星的用户ID
+extern int gUserId;
+//虚拟卫星ID
+extern int gWxId;
 #endif
 
 #endif /* GLOBAL_H_ */

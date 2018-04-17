@@ -1853,3 +1853,42 @@ to:
 	当此宏有定义时，不再调用sendZqSSyc()，改由sendZqSSycOnXNWX()发送周期遥测数据。sendZqSSyc()改名为sendZqSsycOnSocket().
 	当此宏有定义时，不再调用sendAxSSyc()，改由sendAxSSycOnXNWX()发送按需遥测数据。sendAxSSyc()改名为sendAxSsycOnSocket().
 	当此宏有定义时，由于设计集成单元socket链接的常量、变量不再定义，所以使用到它们的函数或代码段也都被编译开关关闭。
+	
+2018-04-16
+1.因为closeDB不止本地数据库使用，中央数据库可能也要使用。所以在closeDB函数内部判断1==gIntIsDbConnected是不合适的。
+		void closeDB(mysql_t * Mysql){
+			GET_FUNCSEQ
+			fucPrint(LOGFILE,"FUC++++++commonTool.cpp FUNC: closeDB is called.\n","调用++++++commonTool.cpp的函数: closeDB.\n");
+		
+			if (1==gIntIsDbConnected){
+				mysql_close(&(Mysql->mysql));
+				//mysql_library_end();
+				//gIntIsDbConnected = 0;
+		
+			}
+		}
+	改为
+		void closeDB(mysql_t * Mysql){
+		GET_FUNCSEQ
+		fucPrint(LOGFILE,"FUC++++++commonTool.cpp FUNC: closeDB is called.\n","调用++++++commonTool.cpp的函数: closeDB.\n");
+	
+		//closeDB不止本地数据库使用，中央数据库可能也要使用。所以在closeDB函数内部判断1==gIntIsDbConnected是不合适的。
+		//if (1==gIntIsDbConnected){
+			mysql_close(&(Mysql->mysql));
+			//mysql_library_end();
+			//gIntIsDbConnected = 0;
+	
+		//}
+		}
+		
+		
+2018-04-16
+1.在全局变量中增加虚拟卫星ID和用户ID
+//虚拟卫星的用户ID
+extern int gUserId;
+//虚拟卫星ID
+extern int gWxId;
+
+2018-04-17
+1.在指令表里增加一列，用以反映某条记录是否被更新或执行结果。alter table GJFW_YK_ZL add column ZL_FLAG tinyint unsigned;
+2.alter table GJFW_YK_ZL alter column ZL_ZXJG set default NULL;

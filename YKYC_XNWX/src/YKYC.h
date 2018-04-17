@@ -150,6 +150,8 @@ int readZlfromSocket(void);
 #else
 //从中央数据库获取指令
 int readZlfromCenterDb(void);
+//更新中央数据库中的指令状态
+int updateZlZttoCenterDb(void);
 #endif
 
 

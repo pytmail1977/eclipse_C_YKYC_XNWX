@@ -155,5 +155,7 @@ mysql_t gMysql_centerDBforYK;
 mysql_t gMysql_centerDBforYC;
 //虚拟卫星的用户ID
 int gUserId;
+//虚拟卫星ID
+int gWxId;
 
 #endif

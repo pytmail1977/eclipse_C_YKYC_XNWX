@@ -143,12 +143,13 @@ void closeDB(mysql_t * Mysql){
 	GET_FUNCSEQ
 	fucPrint(LOGFILE,"FUC++++++commonTool.cpp FUNC: closeDB is called.\n","调用++++++commonTool.cpp的函数: closeDB.\n");
 
-	if (1==gIntIsDbConnected){
+	//closeDB不止本地数据库使用，中央数据库可能也要使用。所以在closeDB函数内部判断1==gIntIsDbConnected是不合适的。
+	//if (1==gIntIsDbConnected){
 		mysql_close(&(Mysql->mysql));
 		//mysql_library_end();
 		//gIntIsDbConnected = 0;
 
-	}
+	//}
 }
 
 /*
