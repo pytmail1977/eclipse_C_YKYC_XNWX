@@ -1892,3 +1892,7 @@ extern int gWxId;
 2018-04-17
 1.在指令表里增加一列，用以反映某条记录是否被更新或执行结果。alter table GJFW_YK_ZL add column ZL_FLAG tinyint unsigned;
 2.alter table GJFW_YK_ZL alter column ZL_ZXJG set default NULL;
+3.提交到gitab
+	http://gitlab.getpartner.ltd:89/pytmail/eclipse_C_YKYC_XNWX.git
+	用户名pytmail/pytgitlab
+	

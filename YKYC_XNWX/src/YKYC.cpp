@@ -2471,8 +2471,8 @@ int updateZlZttoCenterDb(void){
 
 
 
-  	string strGetZL_ZXJG = "select ZL_ID,ZL_ZXJG from node.GJFW_YK_ZL where ZL_ZXJG!=ZXJG_WD and ZL_ZXJG!=ZXJG_JS";
-  	//string strGetZL_ZXJG = "select ZL_ID,ZL_ZXJG from node.GJFW_YK_ZL where ZL_FLAG=1";
+	//string strGetZL_ZXJG = "select ZL_ID,ZL_ZXJG from node.GJFW_YK_ZL where ZL_ZXJG!=ZXJG_WD and ZL_ZXJG!=ZXJG_JS";
+  	string strGetZL_ZXJG = "select ZL_ID,ZL_ZXJG from node.GJFW_YK_ZL where ZL_FLAG=1";
 
   	sqlPrint(LOGFILE,"SQL---select local db table %s: %s\n","SQL---读取本地数据库%s表SQL: %s\n","GJFW_YK_ZL", strGetZL_ZXJG.c_str());
 

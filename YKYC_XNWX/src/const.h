@@ -14,7 +14,7 @@
 //有关自身节点的参数
 //////////////////////
 #ifdef _RUN_ON_XNWX
-#define DEVICE_ID  0x20 //如果在虚拟卫星上运行设备地址都为0x20
+#define DEVICE_ID  0x1E //如果在虚拟卫星上运行设备地址都为0x1E
 #else
 #define DEVICE_ID  0x20 //设备地址，30-33为4个云计算节点
 #endif
