@@ -157,7 +157,7 @@ extern mysql_t gMysql_centerDBforYC;
 //虚拟卫星的用户ID
 extern int gUserId;
 //虚拟卫星ID
-extern int gWxId;
+//extern int gWxId;
 #endif
 
 #endif /* GLOBAL_H_ */

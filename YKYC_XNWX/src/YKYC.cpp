@@ -2162,9 +2162,13 @@ int readZlfromCenterDb(void){
 
     //参考sql
     //select yh_bs,wx_bs,yy_id,zl_lx,zl_bh,zdy_sjy_blob from satellite.all_ins where wx_lb=1 and jd_lb=0x14 and zl_zt=0;
-  	string strReadZL = "select yh_bs,wx_bs,yy_id,zl_lx,zl_bh,zdy_sjy_blob,id from satellite.all_ins where wx_lb=1 and zl_zt=0 and jd_lb = " +
+  	string strReadZL = "select yh_bs,wx_bs,yy_id,zl_lx,zl_bh,zdy_sjy_blob,id from satellite.all_ins where wx_lb= "+
+  			int2String(WX_LB) +
+  			" and zl_zt=0 and jd_lb = " +
   			int2String(DEVICE_ID) +
-  			";";
+ 			" and wx_bs = " +
+  			int2String(WX_ID) +
+   			";";
 
 
   	sqlPrint(LOGFILE,"SQL---select center db table %s: %s\n","SQL---读取中央数据库%s表SQL: %s\n","satellite.all_ins", strReadZL.c_str());
@@ -2213,8 +2217,8 @@ int readZlfromCenterDb(void){
              if (mysql_row[0] != NULL)
             	 gUserId = atoi(mysql_row[0]);
 
-             if (mysql_row[1] != NULL)
-            	 gWxId = atoi(mysql_row[1]);
+             //if (mysql_row[1] != NULL)
+            	// gWxId = atoi(mysql_row[1]);
 
 
              if (mysql_row[2] != NULL)
@@ -2283,7 +2287,7 @@ int readZlfromCenterDb(void){
              //构造插入本地数据库指令表的sql
              string strInsertZL = "insert into " +
          			string(table_name_YK_ZL) +
-         			"(YY_ID,ZL_LX,ZL_BH,ZL_JSSJ,ZL_ZXJG,ZL_NR) values(" +
+         			"(YY_ID,ZL_LX,ZL_BH,ZL_JSSJ,ZL_ZXJG,ZL_NR,yh_bs) values(" +
          			int2String(intYY_ID) +
          			","+
          			int2String(intZL_LX) +
@@ -2295,6 +2299,8 @@ int readZlfromCenterDb(void){
          			int2String(ZXJG_WD)+
          			","
          			"'"+strZLNR+"'" +
+         			","+
+         			int2String(gUserId)+
          			")";
 
 
@@ -2384,7 +2390,7 @@ int readZlfromCenterDb(void){
 
                   string strUpdate_ZLZT_ZLID = "update satellite.all_ins set zl_zt = " +
               			int2String(ZXJG_JS) +
-              			", zl_id = " +
+              			", bd_id = " +
               			int2String(intLastInsertedZLID) +
               			" where id = "+
               			int2String(intId)+
@@ -2537,8 +2543,16 @@ int updateZlZttoCenterDb(void){
              //构造sql
              string strUpdateZLZT = "update satellite.all_ins set zl_zt = "  +
          			int2String(intZL_ZXJG) +
-         			" where zl_id = " +
+         			" where bd_id = " +
          			int2String(intZL_ID) +
+         			" and yh_bs = " +
+         			int2String(gUserId) +
+         			" and wx_bs = " +
+         			int2String(WX_ID) +
+         			" and wx_lb = " +
+         			int2String(WX_LB) +
+         			" and jd_lb = " +
+         			int2String(DEVICE_ID) +
          			";";
 
 
@@ -2557,16 +2571,16 @@ int updateZlZttoCenterDb(void){
           	}
 
 
-
+            /////////////////////////////////////////
+            //如果成功更新了中央数据库指令表指令状态，就更新本地数据库相应记录的FLAG字段，使之归零
+            /////////////////////////////////////////
              if (!ret) {
                   prgPrint(LOGFILE,"PRG---update satellite.all_ins set zl_zt, affact %d rows.\n","过程---更新中央数据库指令表指令状态 ，影响%d行.\n",
                                self_mysql_affected_rows(centerMysqlp));
 
 
 
-                  /////////////////////////////////////////
-                  //如果成功更新了中央数据库，就更新本地数据库相应记录的FLAG字段，使之归零
-                  /////////////////////////////////////////
+
                   string strUpdateFlagOfYKZL = "update node.GJFW_YK_ZL set ZL_FLAG = 0 where ZL_ID = " +
               			int2String(intZL_ID)+
               			";";

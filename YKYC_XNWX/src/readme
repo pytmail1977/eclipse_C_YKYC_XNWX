@@ -1896,3 +1896,22 @@ extern int gWxId;
 	http://gitlab.getpartner.ltd:89/pytmail/eclipse_C_YKYC_XNWX.git
 	用户名pytmail/pytgitlab
 	
+4.	在指令表里增加一个触发器，当ZL_ZXJG变化且ZL_FLAG为null时将ZL_FLAG置为1,并且不妨碍当ZL_ZXJG成功写回中心数据库将ZL_FLAG置为0
+DELIMITER $
+create trigger setFlag before update  
+on GJFW_YK_ZL FOR EACH ROW 
+begin
+if  (new.ZL_ZXJG<>1 and old.ZL_FLAG is null) then
+	set new.ZL_FLAG=1;
+end if;
+end $
+DELIMITER ;
+
+
+2018-04-18
+1.修改all_ins表，加入一列用于记录相应指令在本地表中的bd_id
+	alter table all_ins add column bd_id tinyint unsigned;
+2.修改GJFW_YK_ZL表，加入一列用于记录指令的用户ID（yh_bs)。因为数传需要读这个来自中央数据库的用户信息，以便在虚拟卫星状态下向中央数据库写入put到ftp的文件目录。
+	alter table GJFW_YK_ZL add column yh_bs int;
+3.修改取中央数据库指令的动作，选择未读的、wx_bs是自己，wx_lb是1（虚拟卫星）
+	
