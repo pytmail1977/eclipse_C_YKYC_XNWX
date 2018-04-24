@@ -1914,4 +1914,20 @@ DELIMITER ;
 2.修改GJFW_YK_ZL表，加入一列用于记录指令的用户ID（yh_bs)。因为数传需要读这个来自中央数据库的用户信息，以便在虚拟卫星状态下向中央数据库写入put到ftp的文件目录。
 	alter table GJFW_YK_ZL add column yh_bs int;
 3.修改取中央数据库指令的动作，选择未读的、wx_bs是自己，wx_lb是1（虚拟卫星）
+
+2018-04-24
+1.修改修改测试用中央数据库all_ins表，加入一列用于记录相应指令在本地表中的bd_id
+    alter table all_ins add column bd_id tinyint unsigned;
+2.修改
+	ucharZL_NR[i] = mysql_row[4][i];
+	为
+	ucharZL_NR[i] = mysql_row[5][i];
 	
+3.增加connectCenterDB（），使用中央数据库IP、用户名等。
+4.在init（）初始化gMysql_centerDBforYK和gMysql_centerDBforYC时调用connectCenterDB（）。
+5.如果指令内容为空，过去就认为是一条错误指令，现在如果为空就不插这个字段
+6.在readZlfromCenterDb（）中，轮流处理多个记录的循环开始处
+	while((mysql_row = self_mysql_fetch_row(centerMysqlp,mysql_result))){
+	增加一个初始化的动作
+	         strZL_NR = "";
+        	 bzero(ucharZL_NR,ZL_MAX_LENGTH);	

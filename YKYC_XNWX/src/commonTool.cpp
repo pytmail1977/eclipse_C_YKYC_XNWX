@@ -130,6 +130,43 @@ int connectDB(mysql_t * Mysql){
     return 1;
 }
 
+#ifdef _RUN_ON_XNWX
+int connectCenterDB(mysql_t * Mysql){
+	GET_FUNCSEQ
+	fucPrint(LOGFILE,"FUC++++++commonTool.cpp FUNC: connectDB is called.\n","调用++++++commonTool.cpp的函数: connectDB.\n");
+
+
+	//mysql_library_init(0,NULL,NULL);
+
+	if (NULL == mysql_init(&Mysql->mysql)) {    //分配和初始化MYSQL对象
+        errorPrint(LOGFILE,"ERR-T-mysql_init(): %s.\n","错误-T-初始化MYSQL对象失败: %s.\n", mysql_error(&Mysql->mysql));
+        return -1;
+    }
+
+
+	bool my_true= true;
+	mysql_options(&Mysql->mysql,MYSQL_OPT_RECONNECT,&my_true);
+
+    //尝试与运行在主机上的MySQL数据库引擎建立连接
+    if (NULL == mysql_real_connect(&Mysql->mysql,
+    			CENTER_DB_HOST,
+    			CENTER_DB_USER,
+    			CENTER_DB_PASS,
+    			CENTER_DB_NAME,
+                0,
+                NULL,
+                0)) {
+        errorPrint(LOGFILE,"ERR-T-mysql_real_connect(): %s.\n","错误-T-链接mysql实例失败: %s.\n", mysql_error(&Mysql->mysql));
+        return -1;
+    }
+
+    //设置为自动commit
+    mysql_autocommit(&Mysql->mysql,true);
+    //gIntIsDbConnected = 1;
+    //msgPrint(LOGFILE,"MSG-T-Connected database successfully.\n");
+    return 1;
+}
+#endif //#ifdef _RUN_ON_XNWX
 /*
  * 功能：关闭到数据库的连接
  * 参数：

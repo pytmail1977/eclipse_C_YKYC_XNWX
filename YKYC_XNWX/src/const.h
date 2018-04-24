@@ -421,17 +421,17 @@
 ///////////////////////////////
 
 //中心数据库地址
-#define CENTER_DB_HOST "localhost"
+#define CENTER_DB_HOST "140.143.228.174"
 //中心数据库名称
 #define CENTER_DB_NAME "satellite"
 //中心数据库用户
-#define CENTER_DB_USER "root"
+#define CENTER_DB_USER "satellite"
 //中心数据库口令
-#define CENTER_DB_PASS "pyt999"
+#define CENTER_DB_PASS "satellite"
 //虚拟类别
 #define WX_LB _WXLB_XNWX
 //虚拟卫星ID
-#define WX_ID 9
+#define WX_ID 3
 #endif
 
 #endif /* CONST_H_ */

@@ -14,11 +14,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
-#include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <stdio.h>
 #include <string.h>
+
+//#include <malloc.h>
 
 #ifdef _BUILD_ON_MAC
 #include <sys/malloc.h>

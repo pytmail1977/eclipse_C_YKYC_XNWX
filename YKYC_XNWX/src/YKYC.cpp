@@ -318,10 +318,10 @@ gOutput = fopen(FILENAME,FILEMODE);
 */
 #endif
 #else
-	if (0>=connectDB(&gMysql_centerDBforYK)){
+	if (0>=connectCenterDB(&gMysql_centerDBforYK)){
 		errorPrint(LOGFILE,"ERR---Can't connect Center DB:%d.\n","错误---链接中央数据库失败（错误编号：%d）.\n", errno);
 		return -2; //-1表示无法链接到中央数据库
-	}else if (0>=connectDB(&gMysql_centerDBforYC)){
+	}else if (0>=connectCenterDB(&gMysql_centerDBforYC)){
 		closeDB(&gMysql_centerDBforYK);
 		errorPrint(LOGFILE,"ERR---Can't connect Center DB:%d.\n","错误---链接中央数据库失败（错误编号：%d）.\n", errno);
 		return -2;
@@ -2203,13 +2203,19 @@ int readZlfromCenterDb(void){
          unsigned char ucharZL_NR[ZL_MAX_LENGTH];
          bzero(ucharZL_NR,ZL_MAX_LENGTH);
          int intId;//指令在中央数据库中的id
-
+         int intZlNrIsNull;//指示查处的指令内容是否为空
+         R2H("a")
          //读取第一条指令
          MYSQL_ROW mysql_row;
          while((mysql_row = self_mysql_fetch_row(centerMysqlp,mysql_result))){
 
+
+        	 strZL_NR = "";
+        	 bzero(ucharZL_NR,ZL_MAX_LENGTH);
+
              prgPrint(LOGFILE,"PRG---Fetch a row of unread ZL from Center DB.\n","过程---从中央数据库取到一条未读指令\n.");
 
+             R2H("b")
              /////////////////////////
              //读取指令
              /////////////////////////
@@ -2220,28 +2226,33 @@ int readZlfromCenterDb(void){
              //if (mysql_row[1] != NULL)
             	// gWxId = atoi(mysql_row[1]);
 
-
+             R2H("c")
              if (mysql_row[2] != NULL)
             	 intYY_ID = atoi(mysql_row[2]);
+             R2H("d")
              if (mysql_row[3] != NULL)
             	 intZL_LX = atoi(mysql_row[3]);
+             R2H("e")
              if (mysql_row[4] != NULL)
             	 intZL_BH = atoi(mysql_row[4]);
+             R2H("f")
              if (mysql_row[6] != NULL)
             	 intId = atoi(mysql_row[6]);
+             R2H("g")
 
              if (mysql_row[5] != NULL){
             	 strZL_NR = mysql_row[5];
-
+            	 intZlNrIsNull = 0;
                  int i;
                  for (i=0;i<507;i++)
-                	 ucharZL_NR[i] = mysql_row[4][i];
+                	 ucharZL_NR[i] = mysql_row[5][i];
              }//if (mysql_row[5] != NULL){
              else{
         		 //指令格式错误，内容为空
-                 return -4;
-                 msgPrint(LOGFILE,"MSG---error! get a ZL with null zlnr from center db.\n","消息---指令错误! 从中央数据库读到一条指令，内容为空.\n");
-
+            	 //20180424有些指令的内容就是空的。
+                 //return -4;
+                 //msgPrint(LOGFILE,"MSG---error! get a ZL with null zlnr from center db.\n","消息---指令错误! 从中央数据库读到一条指令，内容为空.\n");
+            	 intZlNrIsNull = 1;
              }
 
              /////////////////////////
@@ -2268,42 +2279,60 @@ int readZlfromCenterDb(void){
              	*/
 
              //用ucharZL_NR[]替换 zlnr[]
+             string strInsertZL;
+             if(intZlNrIsNull){
+                 //构造插入本地数据库指令表的sql
+                  strInsertZL = "insert into " +
+              			string(table_name_YK_ZL) +
+              			"(YY_ID,ZL_LX,ZL_BH,ZL_JSSJ,ZL_ZXJG,yh_bs) values(" +
+              			int2String(intYY_ID) +
+              			","+
+              			int2String(intZL_LX) +
+              			","+
+              			int2String(intZL_BH) +
+              			","+
+              			"'"+getDateString()+"'" +
+              			","+
+              			int2String(ZXJG_WD)+
+              			","+
+              			int2String(gUserId)+
+              			")";
+             }else{
+                 char to[1024]; //>501*2+1
+                 bzero(to,1024);
+                 unsigned long len;
 
-             char to[1024]; //>501*2+1
-             bzero(to,1024);
-             unsigned long len;
-
-             //?此处应该用哪个数据库链接进行脱字处理，还是两者都行
-             len = mysql_real_escape_string(&selfMysqlp->mysql, to, (char *)ucharZL_NR, 507);
-             to[len] = '\0';
-             tmpPrint(LOGFILE,"TMP---Escaped string is: \"%s\" (%lu)\n","临时---Escaped string为: \"%s\" (%lu)\n", to, len);
-             tmpPrint(LOGFILE,"TMP---len after escape: %lu\n","临时---调用escape后的长度: %lu.\n",len);
-             tmpPrint(LOGFILE,"TMP---strlen(to): %zu\n","临时---strlen(to): %zu.\n",strlen(to));
-             dataPrint(LOGFILE,"DAT---ZLNR to Insert is:%s\n","数据---待入库的指令内容：%s.\n",ucharZL_NR);
-
-
-             string strZLNR((char *)to);
-
-             //构造插入本地数据库指令表的sql
-             string strInsertZL = "insert into " +
-         			string(table_name_YK_ZL) +
-         			"(YY_ID,ZL_LX,ZL_BH,ZL_JSSJ,ZL_ZXJG,ZL_NR,yh_bs) values(" +
-         			int2String(intYY_ID) +
-         			","+
-         			int2String(intZL_LX) +
-         			","+
-         			int2String(intZL_BH) +
-         			","+
-         			"'"+getDateString()+"'" +
-         			","+
-         			int2String(ZXJG_WD)+
-         			","
-         			"'"+strZLNR+"'" +
-         			","+
-         			int2String(gUserId)+
-         			")";
+                 //?此处应该用哪个数据库链接进行脱字处理，还是两者都行
+                 len = mysql_real_escape_string(&selfMysqlp->mysql, to, (char *)ucharZL_NR, 507);
+                 to[len] = '\0';
+                 tmpPrint(LOGFILE,"TMP---Escaped string is: \"%s\" (%lu)\n","临时---Escaped string为: \"%s\" (%lu)\n", to, len);
+                 tmpPrint(LOGFILE,"TMP---len after escape: %lu\n","临时---调用escape后的长度: %lu.\n",len);
+                 tmpPrint(LOGFILE,"TMP---strlen(to): %zu\n","临时---strlen(to): %zu.\n",strlen(to));
+                 dataPrint(LOGFILE,"DAT---ZLNR to Insert is:%s\n","数据---待入库的指令内容：%s.\n",ucharZL_NR);
 
 
+                 string strZLNR((char *)to);
+
+                 //构造插入本地数据库指令表的sql
+                 strInsertZL = "insert into " +
+             			string(table_name_YK_ZL) +
+             			"(YY_ID,ZL_LX,ZL_BH,ZL_JSSJ,ZL_ZXJG,ZL_NR,yh_bs) values(" +
+             			int2String(intYY_ID) +
+             			","+
+             			int2String(intZL_LX) +
+             			","+
+             			int2String(intZL_BH) +
+             			","+
+             			"'"+getDateString()+"'" +
+             			","+
+             			int2String(ZXJG_WD)+
+             			","
+             			"'"+strZLNR+"'" +
+             			","+
+             			int2String(gUserId)+
+             			")";
+
+             }
           	sqlPrint(LOGFILE,"SQL---Insert table %s: %s\n","SQL---插入%s表SQL: %s\n",table_name_YK_ZL, strInsertZL.c_str());
 
           	//指令入库

@@ -7,7 +7,7 @@
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.cross.exe.debug.754345186.513584497.751537497.171364855" moduleId="org.eclipse.cdt.core.settings" name="771">
 				<externalSettings/>
 				<extensions>
-					<extension id="org.eclipse.cdt.core.MachO64" point="org.eclipse.cdt.core.BinaryParser"/>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
@@ -16,10 +16,10 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.cross.exe.debug.754345186.513584497.751537497.171364855" name="771" parent="cdt.managedbuild.config.gnu.cross.exe.debug.754345186.513584497.751537497.171364855">
+				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.cross.exe.debug.754345186.513584497.751537497.171364855" name="771">
 					<folderInfo id="cdt.managedbuild.config.gnu.cross.exe.debug.754345186.513584497.751537497.171364855." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.macosx.base.800609667" name="MacOSX GCC" superClass="cdt.managedbuild.toolchain.gnu.macosx.base">
-							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.MachO64" id="cdt.managedbuild.target.gnu.platform.macosx.base.193653241" name="Debug Platform" osList="macosx" superClass="cdt.managedbuild.target.gnu.platform.macosx.base"/>
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.gnu.platform.macosx.base.193653241" name="Debug Platform" osList="macosx" superClass="cdt.managedbuild.target.gnu.platform.macosx.base"/>
 							<builder buildPath="${workspace_loc:/SC}/Debug" id="cdt.managedbuild.target.gnu.builder.macosx.base.323907424" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.macosx.base"/>
 							<tool id="cdt.managedbuild.tool.macosx.c.linker.macosx.base.774966097" name="MacOS X C Linker" superClass="cdt.managedbuild.tool.macosx.c.linker.macosx.base"/>
 							<tool command="/media/sda1/771/opt/gcc-4.6.2-glibc-2.13-linaro-multilib-2011.12/fsl-linaro-toolchain/bin/arm-fsl-linux-gnueabi-g++&#10;" id="cdt.managedbuild.tool.macosx.cpp.linker.macosx.base.141594920" name="MacOS X C++ Linker" superClass="cdt.managedbuild.tool.macosx.cpp.linker.macosx.base">
@@ -71,7 +71,7 @@
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.cross.exe.debug.754345186.513584497.1555338973" moduleId="org.eclipse.cdt.core.settings" name="ARM">
 				<externalSettings/>
 				<extensions>
-					<extension id="org.eclipse.cdt.core.MachO64" point="org.eclipse.cdt.core.BinaryParser"/>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
@@ -83,7 +83,7 @@
 				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.cross.exe.debug.754345186.513584497.1555338973" name="ARM" parent="cdt.managedbuild.config.gnu.cross.exe.debug.754345186.513584497.1555338973">
 					<folderInfo id="cdt.managedbuild.config.gnu.cross.exe.debug.754345186.513584497.1555338973." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.macosx.base.1597599358" name="MacOSX GCC" superClass="cdt.managedbuild.toolchain.gnu.macosx.base">
-							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.MachO64" id="cdt.managedbuild.target.gnu.platform.macosx.base.1361072529" name="Debug Platform" osList="macosx" superClass="cdt.managedbuild.target.gnu.platform.macosx.base"/>
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.gnu.platform.macosx.base.1361072529" name="Debug Platform" osList="macosx" superClass="cdt.managedbuild.target.gnu.platform.macosx.base"/>
 							<builder buildPath="${workspace_loc:/SC}/Debug" id="cdt.managedbuild.target.gnu.builder.macosx.base.2026238046" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.macosx.base"/>
 							<tool id="cdt.managedbuild.tool.macosx.c.linker.macosx.base.2132535341" name="MacOS X C Linker" superClass="cdt.managedbuild.tool.macosx.c.linker.macosx.base"/>
 							<tool command="/home/pyt64/timesys/i_MX6QSABRELite/toolchain/bin/armv7l-timesys-linux-gnueabi-g++&#10;" id="cdt.managedbuild.tool.macosx.cpp.linker.macosx.base.92435636" name="MacOS X C++ Linker" superClass="cdt.managedbuild.tool.macosx.cpp.linker.macosx.base">
@@ -161,7 +161,7 @@
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.cross.exe.debug.754345186.1533284567" moduleId="org.eclipse.cdt.core.settings" name="Debug">
 				<externalSettings/>
 				<extensions>
-					<extension id="org.eclipse.cdt.core.MachO64" point="org.eclipse.cdt.core.BinaryParser"/>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
@@ -173,7 +173,7 @@
 				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.cross.exe.debug.754345186.1533284567" name="Debug" parent="cdt.managedbuild.config.gnu.cross.exe.debug.754345186.1533284567">
 					<folderInfo id="cdt.managedbuild.config.gnu.cross.exe.debug.754345186.1533284567." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.macosx.base.983067908" name="MacOSX GCC" superClass="cdt.managedbuild.toolchain.gnu.macosx.base">
-							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.MachO64" id="cdt.managedbuild.target.gnu.platform.macosx.base.186168665" name="Debug Platform" osList="macosx" superClass="cdt.managedbuild.target.gnu.platform.macosx.base"/>
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.gnu.platform.macosx.base.186168665" name="Debug Platform" osList="macosx" superClass="cdt.managedbuild.target.gnu.platform.macosx.base"/>
 							<builder buildPath="${workspace_loc:/SC}/Debug" id="cdt.managedbuild.target.gnu.builder.macosx.base.1064044448" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.macosx.base"/>
 							<tool id="cdt.managedbuild.tool.macosx.c.linker.macosx.base.955849760" name="MacOS X C Linker" superClass="cdt.managedbuild.tool.macosx.c.linker.macosx.base"/>
 							<tool id="cdt.managedbuild.tool.macosx.cpp.linker.macosx.base.1515743860" name="MacOS X C++ Linker" superClass="cdt.managedbuild.tool.macosx.cpp.linker.macosx.base">
@@ -224,7 +224,7 @@
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.cross.exe.debug.754345186.1533284567.1166014937" moduleId="org.eclipse.cdt.core.settings" name="DebugOnMac">
 				<externalSettings/>
 				<extensions>
-					<extension id="org.eclipse.cdt.core.MachO64" point="org.eclipse.cdt.core.BinaryParser"/>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
@@ -236,7 +236,7 @@
 				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.cross.exe.debug.754345186.1533284567.1166014937" name="DebugOnMac" parent="cdt.managedbuild.config.gnu.cross.exe.debug.754345186.1533284567">
 					<folderInfo id="cdt.managedbuild.config.gnu.cross.exe.debug.754345186.1533284567.1166014937." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.macosx.base.41803391" name="MacOSX GCC" superClass="cdt.managedbuild.toolchain.gnu.macosx.base">
-							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.MachO64" id="cdt.managedbuild.target.gnu.platform.macosx.base.498679670" name="Debug Platform" osList="macosx" superClass="cdt.managedbuild.target.gnu.platform.macosx.base"/>
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.gnu.platform.macosx.base.498679670" name="Debug Platform" osList="macosx" superClass="cdt.managedbuild.target.gnu.platform.macosx.base"/>
 							<builder buildPath="${workspace_loc:/SC}/Debug" id="cdt.managedbuild.target.gnu.builder.macosx.base.706200077" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.macosx.base"/>
 							<tool id="cdt.managedbuild.tool.macosx.c.linker.macosx.base.549692699" name="MacOS X C Linker" superClass="cdt.managedbuild.tool.macosx.c.linker.macosx.base"/>
 							<tool id="cdt.managedbuild.tool.macosx.cpp.linker.macosx.base.15214597" name="MacOS X C++ Linker" superClass="cdt.managedbuild.tool.macosx.cpp.linker.macosx.base">
@@ -280,6 +280,69 @@
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 		</cconfiguration>
+		<cconfiguration id="cdt.managedbuild.config.gnu.cross.exe.debug.754345186.1533284567.1166014937.990790811">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.cross.exe.debug.754345186.1533284567.1166014937.990790811" moduleId="org.eclipse.cdt.core.settings" name="DebugOnMacForElf">
+				<macros>
+					<stringMacro name="HostOsName" type="VALUE_TEXT" value="linux"/>
+				</macros>
+				<externalSettings/>
+				<extensions>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.cross.exe.debug.754345186.1533284567.1166014937.990790811" name="DebugOnMacForElf" parent="cdt.managedbuild.config.gnu.cross.exe.debug.754345186.1533284567">
+					<folderInfo id="cdt.managedbuild.config.gnu.cross.exe.debug.754345186.1533284567.1166014937.990790811." name="/" resourcePath="">
+						<toolChain id="cdt.managedbuild.toolchain.gnu.cross.base.1187330811" name="Cross GCC" superClass="cdt.managedbuild.toolchain.gnu.cross.base">
+							<option id="cdt.managedbuild.option.gnu.cross.prefix.1028675286" name="Prefix" superClass="cdt.managedbuild.option.gnu.cross.prefix" value="x86_64-elf-" valueType="string"/>
+							<option id="cdt.managedbuild.option.gnu.cross.path.139474966" name="Path" superClass="cdt.managedbuild.option.gnu.cross.path" value="/opt/local/bin/" valueType="string"/>
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.targetPlatform.gnu.cross.1751837786" isAbstract="false" osList="all" superClass="cdt.managedbuild.targetPlatform.gnu.cross"/>
+							<builder buildPath="${workspace_loc:/YKYC_XNWX}/DebugOnMacForElf" id="cdt.managedbuild.builder.gnu.cross.999438650" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.builder.gnu.cross"/>
+							<tool id="cdt.managedbuild.tool.gnu.cross.c.compiler.1748211416" name="Cross GCC Compiler" superClass="cdt.managedbuild.tool.gnu.cross.c.compiler">
+								<option id="gnu.c.compiler.option.include.paths.412645253" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="/usr/local/Cellar/mysql/5.7.18_1/include/mysql"/>
+								</option>
+								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.option.optimization.level.187633735" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" valueType="enumerated"/>
+								<option id="gnu.c.compiler.option.debugging.level.1886930464" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
+								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1845809603" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
+							</tool>
+							<tool command="g++" id="cdt.managedbuild.tool.gnu.cross.cpp.compiler.1383693415" name="Cross G++ Compiler" superClass="cdt.managedbuild.tool.gnu.cross.cpp.compiler">
+								<option id="gnu.cpp.compiler.option.include.paths.1350218546" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="/usr/local/Cellar/mysql/5.7.18_1/include/mysql"/>
+								</option>
+								<option id="gnu.cpp.compiler.option.optimization.level.1964063776" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
+								<option id="gnu.cpp.compiler.option.debugging.level.1138259841" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
+								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.2065831159" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.cross.c.linker.1118021169" name="Cross GCC Linker" superClass="cdt.managedbuild.tool.gnu.cross.c.linker"/>
+							<tool command="g++" id="cdt.managedbuild.tool.gnu.cross.cpp.linker.1181585705" name="Cross G++ Linker" superClass="cdt.managedbuild.tool.gnu.cross.cpp.linker">
+								<option id="gnu.cpp.link.option.libs.2068232493" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
+									<listOptionValue builtIn="false" value="mysqlclient"/>
+									<listOptionValue builtIn="false" value="pthread"/>
+								</option>
+								<option id="gnu.cpp.link.option.paths.434562049" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
+									<listOptionValue builtIn="false" value="/usr/local/Cellar/mysql/5.7.18_1/lib"/>
+								</option>
+								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.409584821" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
+									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
+									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
+								</inputType>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.cross.archiver.326243316" name="Cross GCC Archiver" superClass="cdt.managedbuild.tool.gnu.cross.archiver"/>
+							<tool id="cdt.managedbuild.tool.gnu.cross.assembler.1740034572" name="Cross GCC Assembler" superClass="cdt.managedbuild.tool.gnu.cross.assembler">
+								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1115486854" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
+							</tool>
+						</toolChain>
+					</folderInfo>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+		</cconfiguration>
 	</storageModule>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 		<project id="YKYC.null.700221980" name="YKYC"/>
@@ -291,6 +354,9 @@
 		</configuration>
 		<configuration configurationName="Release"/>
 		<configuration configurationName="DebugOnMac">
+			<resource resourceType="PROJECT" workspacePath="/YKYC_XNWX"/>
+		</configuration>
+		<configuration configurationName="DebugOnMacForElf">
 			<resource resourceType="PROJECT" workspacePath="/YKYC_XNWX"/>
 		</configuration>
 		<configuration configurationName="771"/>
@@ -323,5 +389,17 @@
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.cross.exe.debug.754345186.1533284567.1166014937;cdt.managedbuild.config.gnu.cross.exe.debug.754345186.1533284567.1166014937.;cdt.managedbuild.tool.gnu.cpp.compiler.macosx.base.2117250641;cdt.managedbuild.tool.gnu.cpp.compiler.input.2118558067">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 		</scannerConfigBuildInfo>
+	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
+		<buildTargets>
+			<target name="x86_64-linux-gnu" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>make</buildCommand>
+				<buildArguments/>
+				<buildTarget>x86_64-linux-gnu</buildTarget>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>true</useDefaultCommand>
+				<runAllBuilders>true</runAllBuilders>
+			</target>
+		</buildTargets>
 	</storageModule>
 </cproject>

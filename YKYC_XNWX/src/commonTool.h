@@ -153,5 +153,9 @@ int myfprintf (FILE *__restrict __stream,
 
 int get_local_ip(char * ifname, char * ip);
 
+#ifdef _RUN_ON_XNWX
+int connectCenterDB(mysql_t * Mysql);
+#endif
+
 #endif /* COMMONTOOL_H_ */
 
