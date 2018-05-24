@@ -1931,3 +1931,16 @@ DELIMITER ;
 	增加一个初始化的动作
 	         strZL_NR = "";
         	 bzero(ucharZL_NR,ZL_MAX_LENGTH);	
+2018-05-24
+1.修改gatherZqSsycData（）函数，当数据库未连接时返回。
+2.修改gatherZqSsycData（）函数，当mysql_row[0..4] == NULL时，不再释放mysql_result，因为紧跟的return语句被注释掉，造成多次释放。
+3.修改main_loop_of_YK（）函数，在虚拟卫星版的函数中，循环体内没有对遥控线程保活计数器+1
+4.检查所有调用self_mysql_free_result（）函数的地方，注意调用之后没有return的地方，避免二次free。
+5.修改readZlfromCenterDb（）函数，在原有操作“取本地库中刚插入的指令的ZL_ID，更新中央数据库中，以便将来本地数据库有指令执行结果时更新中央数据库”处,将查询记录的释放操作
+	“self_mysql_free_result(selfMysqlp, mysql_result_select_lastZLID);”
+	由
+		if(0 == num_row){
+	分支之后，改到
+		整个if语句之后
+6.修改readZlfromCenterDb（）函数，如果向本地库插入一条指令失败，就尝试下一条（continue），而非return
+7.完成sendAxSsycOnXNWX（）函数

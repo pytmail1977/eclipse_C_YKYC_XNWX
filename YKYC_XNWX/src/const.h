@@ -432,6 +432,8 @@
 #define WX_LB _WXLB_XNWX
 //虚拟卫星ID
 #define WX_ID 3
+//节点类别
+#define JD_LB 0x14 //节点类别
 #endif
 
 #endif /* CONST_H_ */

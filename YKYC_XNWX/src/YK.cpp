@@ -50,6 +50,7 @@ void* main_loop_of_YK(void *arg){
     	//遥控线程保活计数器+1
     	gIntNewStatYKThread++;
 
+
 		lenOfIns = 0;
 	    bzero(zlData,ZL_MAX_LENGTH);
 
@@ -536,7 +537,9 @@ void* main_loop_of_YK(void *arg){
 
 
 	while(gIntIsRun){
-
+		//2018-05-24
+    	//遥控线程保活计数器+1
+    	gIntNewStatYKThread++;
 #ifndef _LOOP
     	//调试，如果没有链接到服务器则暂不循环
     	break;

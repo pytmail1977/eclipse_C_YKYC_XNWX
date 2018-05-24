@@ -71,7 +71,231 @@ void destroyYsycListArray(void){
  *  功能：选取和发送实时遥测数据表中的数据到中央数据库
  */
 int sendAxSsycOnXNWX(){
-	//todo
+	GET_FUNCSEQ
+	fucPrint(LOGFILE,"FUC+++YKYC.cpp FUNC: sendAxSsycOnXNWX is called.\n","调用+++YKYC.cpp的函数: sendAxSsycOnXNWX.\n");
+
+	//取得本线程对应的数据库链接
+	mysql_t * selfMysqlp = NULL;
+	selfMysqlp = getMysql();
+	if (NULL == selfMysqlp){
+		errorPrint(LOGFILE,"ERR---Can not get mysql connection for this thread.\n","错误---无法取得本线程的mysql句柄.\n");
+		return -1;
+	}
+
+	//取得YK所用的中央数据库链接
+	mysql_t * centerMysqlp = &gMysql_centerDBforYK;
+
+
+  	//如果本地数据库未连接就返回
+  	if(gIntIsDbConnected!=1)
+  		return -2;
+  	//如果中央数据库未连接就返回
+  	if(gIntIsCenterDBConnected!=1)
+  		return -3;
+
+
+
+	//在GJFW_YC_SSYCSJ中填写优先级
+	//从GJFW_JKGL_YYZT读取YY_YXJ,如果为空就以255-YY_ID作为此应用的优先级
+	//从GJFW_YC_SSYCSJ中读取应用自设的优先级（0-9），将应用优先级乘以10与这个自设优先级相加作为该条数据的优先级
+	////////////////////////////////////////////////////////////////////////////////////////////
+	string strGETYxJ="select a.YY_ID,IFNULL(b.YY_YXJ,255-b.YY_ID)*10+IFNULL(a.SSYC_YXJ,0) from GJFW_YC_SSYCSJ a, GJFW_JKGL_YYZT b where a.YY_ID=b.YY_ID;";
+
+	string strSetSsycYxj = "update GJFW_YC_SSYCSJ a,GJFW_JKGL_YYZT b set a.SSYC_YXJ = IFNULL(b.YY_YXJ,255-b.YY_ID)*10+IFNULL(a.SSYC_YXJ,0)  where a.YY_ID=b.YY_ID and (a.SSYC_YXJ is null or a.SSYC_YXJ<10)";
+
+    if(self_mysql_query(selfMysqlp,strSetSsycYxj.c_str())==0)
+    {
+           prgPrint(LOGFILE,"PRG-C-Set Ssyc YXJ of  %s success.\n","过程-C-设置实时遥测%s表优先级成功.\n",table_name_YC_SSYCSJ);
+    }else {
+           errorPrint(LOGFILE,"ERR-C-Set Ssyc YXJ of  %s error.\n","错误-C-设置实时遥测%s表优先级失败.\n",table_name_YC_SSYCSJ);
+    }
+
+    ////////////////
+    //取出一条优先级最大的实时遥测内容
+    ////////////////
+    string strSSYC_ID = "";
+    string strYY_ID = "";
+    string strSSYC_CD = "";
+    string strYYSC_NR = "";
+    //unsigned char ssyc_nr[SSYC_MAX_LENGTH];
+
+    //20171218 add
+    string strSSYC_GS = "";
+
+    int intLengthOfSsycNr = 0 ;
+
+    //20171218 change
+    //string strSelectSsycNrWithMaxYxj ="select SSYC_ID,YY_ID,SSYC_CD,SSYC_NR from "
+    string strSelectSsycNrWithMaxYxj ="select SSYC_ID,YY_ID,SSYC_CD,SSYC_NR,SSYC_GS from "
+    		+ string(table_name_YC_SSYCSJ)
+    		//+ " order by SSYC_YXJ desc";
+    		+ " where SSYC_GS = 0 and SSYC_CD is not NULL order by SSYC_YXJ desc";
+
+    if(self_mysql_query(selfMysqlp,strSelectSsycNrWithMaxYxj.c_str())==0)
+    {
+          prgPrint(LOGFILE,"PRG-C-Query table %s success.\n","过程-C-查询%s表成功.\n",table_name_YC_SSYCSJ);
+          MYSQL_RES *mysql_result = NULL;
+
+          mysql_result = self_mysql_store_result(selfMysqlp);
+
+
+          if (NULL != mysql_result){
+              int num_row=self_mysql_num_rows(selfMysqlp,mysql_result);
+              if (0 != num_row){
+
+                  MYSQL_ROW mysql_row=self_mysql_fetch_row(selfMysqlp,mysql_result);
+
+                  if (NULL == mysql_row){
+
+                	  	  self_mysql_free_result(selfMysqlp,mysql_result);
+                	  	  errorPrint(LOGFILE,"ERR-C-Can not fetch any ssyc sj，NULL == mysql_row.\n","错误-C-无法取得实时遥测数据，NULL == mysql_row.\n");
+                	  	  return -1;
+                  }
+
+
+                   //取出SSYC_ID内容，如果不为NULL，则输出
+                   if (mysql_row[0] == NULL){
+                	   errorPrint(LOGFILE,"ERR-C-Get a null column SSYC_ID in %s.\n","错误-C-%s表SSYC_ID列为空.\n", table_name_YC_SSYCSJ);
+            	  	  self_mysql_free_result(selfMysqlp,mysql_result);
+                 	  return -1;
+                   }else{
+                	   	   strSSYC_ID = mysql_row[0];
+
+                   }
+
+                   //取出YY_ID内容，如果不为NULL，则输出
+                   if (mysql_row[1] == NULL){
+                	   errorPrint(LOGFILE,"ERR-C-Get a null column YY_ID in %s.\n","错误-C-%s表YY_ID列为空.\n", table_name_YC_SSYCSJ);
+            	  	  //20171227
+                	   //self_mysql_free_result(selfMysqlp,mysql_result);
+            	  	  //return -1;
+                	   strYY_ID="255";
+                   }else{
+                	   	   strYY_ID = mysql_row[1];
+
+                   }
+
+                   //取出SSYC_CD内容，如果不为NULL，则输出
+                   if (mysql_row[2] == NULL){
+                	   errorPrint(LOGFILE,"ERR-C-Get a null column SSYC_CD in %s.\n","错误-C-%s表SSYC_CD列为空.\n", table_name_YC_SSYCSJ);
+            	  	  //self_mysql_free_result(selfMysqlp,mysql_result);
+            	  	  //return -1;
+                	   strSSYC_CD="0";
+                   }else{
+
+                	   	   strSSYC_CD = mysql_row[2];
+                	   	   intLengthOfSsycNr = atoi(strSSYC_CD.c_str());
+                   	   dataPrint(LOGFILE,"SSYC_CD is: %d .\n","实时遥测长度SSYC_CD: %d .\n",intLengthOfSsycNr);
+                   }
+
+                   //取出SSYC_NR内容，如果不为NULL，则输出
+                   if (mysql_row[3] == NULL){
+                	   errorPrint(LOGFILE,"ERR-C-Get a null column SSYC_NR in %s.\n","错误-C-%s表SSYC_NR列为空.\n", table_name_YC_SSYCSJ);
+            	  	  //self_mysql_free_result(selfMysqlp,mysql_result);
+                 	  //return -1;
+                   }else{
+                	   strYYSC_NR = mysql_row[3];
+
+
+                   }
+
+
+
+            	   //////////////////////////
+            	   //定义一个遥测字符串，并填充
+            	   //////////////////////////
+            	   string strYC = "";
+            	   strYC = "YY_ID=" +
+            			   strYY_ID +
+            			   ", YC_NR=" +
+            			   strYYSC_NR;
+
+            	   printf("//////////////////\n/////////////////\n////////////////\n\n\n");
+
+
+                   ////////////////////////////
+                   //向中央数据库遥测表写入遥测数据
+                   ////////////////////////////
+
+                   if (gIntIsCenterDBConnected == 1){
+                       //按需遥测次数自增
+                       gAxYcCount ++;
+
+
+
+
+                       //向中央数据库插入遥测数据
+                       string strInsert_AXYC2CenterDB = "insert satellite.qlzx_test_yc(yh_bs,wx_lb,wx_bs,jd_lb,js_js,yc_xx) values( " +
+                    		   int2String(gUserId) +
+                    		   "," +
+                    		   int2String(WX_LB) +
+                    		   "," +
+                    		   int2String(WX_ID) +
+                    		   "," +
+                    		   int2String(JD_LB) +
+                    		   ",\'" +
+                    		   getDateString() +
+                    		   "\','" +
+                    		   strYC +
+                    		   ");";
+
+
+                        sqlPrint(LOGFILE,"SQL---Insert satellite.qlzx_test_yc: %s.\n","SQL---插入中央数据遥测，SQL: %s.\n",strInsert_AXYC2CenterDB.c_str());
+
+                        int ret = self_mysql_query(centerMysqlp, strInsert_AXYC2CenterDB.c_str());
+
+                        if (!ret) {
+                             prgPrint(LOGFILE,"PRG---Insert satellite.qlzx_test_yc, affact %d rows.\n","过程---插入中央数据遥测成功 ，影响%d行.\n",
+                                     self_mysql_affected_rows(centerMysqlp));
+                         } else {
+                             errorPrint(LOGFILE, "ERR---Insert satellite.qlzx_test_yc error %d: %s.\n", "错误---插入中央数据遥测失败（错误编号：%d，%s）.\n", self_mysql_errno(centerMysqlp), self_mysql_error(centerMysqlp));
+
+                         }//if (!ret)
+
+                  	}//if (gIntIsCenterDBConnected == 1){
+               }//if (0 != num_row){
+              self_mysql_free_result(selfMysqlp,mysql_result);
+
+
+          }//(NULL != mysql_result){
+    }else {
+           errorPrint(LOGFILE,"ERR-C-Query table %s error.\n","错误-C-查询%s表失败.\n",table_name_YC_SSYCSJ);
+    }
+
+
+
+    ////////////////
+    //删除已经发送的实时遥测数据
+    ////////////////
+#ifndef _DONT_DELETE_AFTER_SEND_AX_SSYC
+    if("" != strSSYC_ID){
+        string strDeleteSsycSj = "delete from GJFW_YC_SSYCSJ where SSYC_ID = "
+        		+strSSYC_ID;
+
+        if(self_mysql_query(selfMysqlp,strDeleteSsycSj.c_str())==0)
+        {
+               prgPrint(LOGFILE,"PRG-C-Delete Ssycsj of  %s success.\n","过程-C-删除%s表已发送的实时遥测数据成功.\n",table_name_YC_SSYCSJ);
+        }else {
+               errorPrint(LOGFILE,"ERR-C-Delete Ssycsj of  %s error.\n","错误-C-删除%s表已发送的实时遥测数据失败.\n",table_name_YC_SSYCSJ);
+        }
+    }
+#endif
+
+
+    ////////////////
+    //将所有超过9的优先级都自增1
+    ////////////////
+    string strUpdateSsycYxj = "update GJFW_YC_SSYCSJ set SSYC_YXJ = SSYC_YXJ+1 where SSYC_YXJ>9";
+    if(self_mysql_query(selfMysqlp,strUpdateSsycYxj.c_str())==0)
+    {
+           prgPrint(LOGFILE,"PRG-C-Update Ssyc YXJ of  %s success.\n","过程-C-更新实时遥测数据表%s的优先级+1成功.\n",table_name_YC_SSYCSJ);
+    }else {
+           errorPrint(LOGFILE,"ERR-C-Update Ssyc YXJ of  %s error.\n","错误-C-更新实时遥测数据表%s的优先级+1失败.\n",table_name_YC_SSYCSJ);
+    }
+
+   prgPrint(LOGFILE,"PRG-C-sendAxSsyc success.\n","过程-C-发送按需实时遥测数据成功");
+
+
 	return 1;
 }
 
@@ -470,6 +694,14 @@ int gatherZqSsycData(void){
 		return -1;
 	}
 
+
+	//2018-05-24
+	//如果数据库未连接就返回
+	if(gIntIsDbConnected!=1){
+		errorPrint(LOGFILE,"ERR---Can not gather ZqSsyc Data，fail to connect DB.\n","错误---采集实时遥测数据失败，无法链接到数据库.\n");
+		return -1;
+	}
+
 	//确定采集量现在应该写哪个遥测包结构
 	int index = gSsycStruct.intDataCJUsing;
 	//实时遥测包结构
@@ -603,11 +835,14 @@ int gatherZqSsycData(void){
 
                         int yyId = 0, yyZt = 0, sfBh = 0, sfZqd = 0, sfAz = 0;
 
+
+                        //2018-05-24
+                        //修改gatherZqSsycData（）函数，当mysql_row[0..4] == NULL时，不再释放mysql_result，因为紧跟的return语句被注释掉，造成多次释放。
                         //取出YY_ID,YY_YXZT,YY_SFBH,YY_ZQDSFSN内容，如果不为NULL，则记录
                         if (mysql_row[0] == NULL){
 
                      	   errorPrint(LOGFILE,"ERR-C-Get a null column YY_ID in %s.\n","错误-C-%s表YY_ID列为空.\n", table_name_JKGL_YYZT);
-                 	  	  self_mysql_free_result(selfMysqlp,mysql_result);
+                 	  	  //self_mysql_free_result(selfMysqlp,mysql_result);
                       	  //return -1;
                         }else{
 
@@ -619,7 +854,7 @@ int gatherZqSsycData(void){
                         if (mysql_row[1] == NULL){
 
                      	   errorPrint(LOGFILE,"ERR-C-Get a null column YY_YXZT in %s.\n","错误-C-%s表YY_YXZT列为空.\n", table_name_JKGL_YYZT);
-                 	  	  self_mysql_free_result(selfMysqlp,mysql_result);
+                 	  	  //self_mysql_free_result(selfMysqlp,mysql_result);
                       	  //return -1;
                         }else{
 
@@ -631,7 +866,7 @@ int gatherZqSsycData(void){
                         if (mysql_row[2] == NULL){
 
                      	   errorPrint(LOGFILE,"ERR-C-Get a null column YY_SFBH in %s.\n","错误-C-%s表YY_SFBH列为空.\n", table_name_JKGL_YYZT);
-                 	  	  self_mysql_free_result(selfMysqlp,mysql_result);
+                 	  	  //self_mysql_free_result(selfMysqlp,mysql_result);
                       	  //return -1;
                         }else{
 
@@ -643,7 +878,7 @@ int gatherZqSsycData(void){
                         if (mysql_row[3] == NULL){
 
                      	   errorPrint(LOGFILE,"ERR-C-Get a null column YY_ZQDSFSN in %s.\n","错误-C-%s表YY_ZQDSFSN列为空.\n", table_name_JKGL_YYZT);
-                 	  	  self_mysql_free_result(selfMysqlp,mysql_result);
+                 	  	  //self_mysql_free_result(selfMysqlp,mysql_result);
                       	  //return -1;
                         }else{
 
@@ -655,7 +890,7 @@ int gatherZqSsycData(void){
                         if (mysql_row[4] == NULL){
 
                      	   errorPrint(LOGFILE,"ERR-C-Get a null column YY_AZZT in %s.\n","错误-C-%s表YY_AZZT列为空.\n", table_name_JKGL_YYZT);
-                 	  	  self_mysql_free_result(selfMysqlp,mysql_result);
+                 	  	  //self_mysql_free_result(selfMysqlp,mysql_result);
                       	  //return -1;
                         }else{
                         	sfAz = atoi(mysql_row[4]);

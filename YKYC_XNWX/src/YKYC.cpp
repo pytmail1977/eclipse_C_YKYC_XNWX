@@ -2172,6 +2172,7 @@ int readZlfromCenterDb(void){
 
 
   	sqlPrint(LOGFILE,"SQL---select center db table %s: %s\n","SQL---读取中央数据库%s表SQL: %s\n","satellite.all_ins", strReadZL.c_str());
+  	printf("SQL---select center db table %s: %s\n","satellite.all_ins", strReadZL.c_str());
 
   	///////////////////////////////////////////
   	//读取中央数据库指令表并插入本地指令库表
@@ -2189,6 +2190,7 @@ int readZlfromCenterDb(void){
          if (NULL != mysql_result){
              num_row = self_mysql_num_rows(centerMysqlp, mysql_result);
              tmpPrint(LOGFILE,"TMP---Select from %s %d rows in center db.\n","临时---从中央数据库 Select from %s %d 行.\n", "all_ins",num_row);
+
          }
 
          //如果行数为0就释放记录并退出
@@ -2204,7 +2206,7 @@ int readZlfromCenterDb(void){
          bzero(ucharZL_NR,ZL_MAX_LENGTH);
          int intId;//指令在中央数据库中的id
          int intZlNrIsNull;//指示查处的指令内容是否为空
-         R2H("a")
+
          //读取第一条指令
          MYSQL_ROW mysql_row;
          while((mysql_row = self_mysql_fetch_row(centerMysqlp,mysql_result))){
@@ -2215,7 +2217,7 @@ int readZlfromCenterDb(void){
 
              prgPrint(LOGFILE,"PRG---Fetch a row of unread ZL from Center DB.\n","过程---从中央数据库取到一条未读指令\n.");
 
-             R2H("b")
+
              /////////////////////////
              //读取指令
              /////////////////////////
@@ -2226,19 +2228,19 @@ int readZlfromCenterDb(void){
              //if (mysql_row[1] != NULL)
             	// gWxId = atoi(mysql_row[1]);
 
-             R2H("c")
+
              if (mysql_row[2] != NULL)
             	 intYY_ID = atoi(mysql_row[2]);
-             R2H("d")
+
              if (mysql_row[3] != NULL)
             	 intZL_LX = atoi(mysql_row[3]);
-             R2H("e")
+
              if (mysql_row[4] != NULL)
             	 intZL_BH = atoi(mysql_row[4]);
-             R2H("f")
+
              if (mysql_row[6] != NULL)
             	 intId = atoi(mysql_row[6]);
-             R2H("g")
+
 
              if (mysql_row[5] != NULL){
             	 strZL_NR = mysql_row[5];
@@ -2334,8 +2336,9 @@ int readZlfromCenterDb(void){
 
              }
           	sqlPrint(LOGFILE,"SQL---Insert table %s: %s\n","SQL---插入%s表SQL: %s\n",table_name_YK_ZL, strInsertZL.c_str());
-
+        	//////////////////////
           	//指令入库
+          	//////////////////////
           	int ret;
           	//尝试三次操作数据库，如果都失败，就认了。
           	int count;
@@ -2374,7 +2377,7 @@ int readZlfromCenterDb(void){
                   //////////////////////////////////////////
                   //取本地库中刚插入的指令的ZL_ID，更新中央数据库中，以便将来本地数据库有指令执行结果时更新中央数据库
                   //////////////////////////////////////////
-                  int intLastInsertedZLID = 0;
+                  int intLastInsertedZLID = -1;
                   string strLastInsertId = "SELECT LAST_INSERT_ID();";
 
                   //如果本地数据库连接就查询
@@ -2385,26 +2388,28 @@ int readZlfromCenterDb(void){
                              prgPrint(LOGFILE,"PRG---Select last Insert ZL_ID from local DB, affact %d rows.\n","过程---查询到刚插入的本地数据库指令表的ZL_ID ，影响%d行.\n",
                                      self_mysql_affected_rows(selfMysqlp));
 
-                             MYSQL_RES *mysql_result = self_mysql_store_result(selfMysqlp);
+                             MYSQL_RES *mysql_result_select_lastZLID = self_mysql_store_result(selfMysqlp);
 
                              int num_row = 0;
                              //如果取到结果集就取行数
                              if (NULL != mysql_result){
-                                 num_row = self_mysql_num_rows(selfMysqlp, mysql_result);
+                                 num_row = self_mysql_num_rows(selfMysqlp, mysql_result_select_lastZLID);
                                  tmpPrint(LOGFILE,"TMP---Select from %s %d rows.\n","临时---Select from %s %d rows.\n", table_name_YK_ZL,num_row);
                              }
 
-                             //如果行数为0就释放记录并退出，否则就记录ZL_ID
+                             //如果行数为0就报错，否则就记录ZL_ID
                              if(0 == num_row){
                                  tmpPrint(LOGFILE,"TMP---There is no last inserted ZL_ID.\n","临时---没有查到最近插入指令的ZL_ID.\n");
-                                 self_mysql_free_result(selfMysqlp, mysql_result);
+
                              }else{
                                  //读取第最新插入的指令ID
-                                 MYSQL_ROW mysql_row=self_mysql_fetch_row(selfMysqlp, mysql_result);
+                                 MYSQL_ROW mysql_row=self_mysql_fetch_row(selfMysqlp, mysql_result_select_lastZLID);
                                  if (mysql_row[0] != NULL)
                                 	 intLastInsertedZLID = atoi(mysql_row[0]);
                              }//if(0 == num_row){
-
+                             //把释放操作放在这里
+                             //释放mysql_result_select_lastZLID
+                             self_mysql_free_result(selfMysqlp, mysql_result_select_lastZLID);
                          } else {
                              errorPrint(LOGFILE, "ERR---Select last Insert ZL_ID from local DB, error %d: %s.\n", "错误---查询刚插入的本地库指令表记录的ZL_ID失败（错误编号：%d，%s）.\n", self_mysql_errno(selfMysqlp), self_mysql_error(selfMysqlp));
                              return -5;
@@ -2417,33 +2422,37 @@ int readZlfromCenterDb(void){
                   //更新中央数据库相应记录的状态为接受，zl_id为本地库中插入生成的ZL_ID
                   //////////////////////////////////////////
 
-                  string strUpdate_ZLZT_ZLID = "update satellite.all_ins set zl_zt = " +
-              			int2String(ZXJG_JS) +
-              			", bd_id = " +
-              			int2String(intLastInsertedZLID) +
-              			" where id = "+
-              			int2String(intId)+
-              			";";
+                  //如果查询到在本地库中插入的最后一条指令的ZL_ID，就更新中央数据库
+                  if(-1!=intLastInsertedZLID){
+                      string strUpdate_ZLZT_ZLID = "update satellite.all_ins set zl_zt = " +
+                  			int2String(ZXJG_JS) +
+                  			", bd_id = " +
+                  			int2String(intLastInsertedZLID) +
+                  			" where id = "+
+                  			int2String(intId)+
+                  			";";
 
 
-                  sqlPrint(LOGFILE,"SQL---Update satellite.all_ins.zl_zt and zl_id: %s.\n","SQL---更新中央数据库指令zl_zt和zl_id，SQL: %s.\n",strUpdate_ZLZT_ZLID.c_str());
+                      sqlPrint(LOGFILE,"SQL---Update satellite.all_ins.zl_zt and zl_id: %s.\n","SQL---更新中央数据库指令zl_zt和zl_id，SQL: %s.\n",strUpdate_ZLZT_ZLID.c_str());
 
 
-                  //如果中央数据库连接就执行update操作
-                  if(gIntIsCenterDBConnected==1){
-                    	int ret = self_mysql_query(centerMysqlp, strUpdate_ZLZT_ZLID.c_str());
+                      //如果中央数据库连接就执行update操作
+                      if(gIntIsCenterDBConnected==1){
+                        	int ret = self_mysql_query(centerMysqlp, strUpdate_ZLZT_ZLID.c_str());
 
-                        if (!ret) {
-                             prgPrint(LOGFILE,"PRG---Update satellite.all_ins.zl_zt, zl_id, affact %d rows.\n","过程---更新中央数据库指zl_zt,zl_id ，影响%d行.\n",
-                                     self_mysql_affected_rows(centerMysqlp));
-                         } else {
-                             errorPrint(LOGFILE, "ERR---Update satellite.all_ins.zl_zt, zl_id error %d: %s.\n", "错误---更新中央数据库zl_zt,zl_id失败（错误编号：%d，%s）.\n", self_mysql_errno(centerMysqlp), self_mysql_error(centerMysqlp));
-                             return -6;
-                         }//if (!ret)
+                            if (!ret) {
+                                 prgPrint(LOGFILE,"PRG---Update satellite.all_ins.zl_zt, zl_id, affact %d rows.\n","过程---更新中央数据库指zl_zt,zl_id ，影响%d行.\n",
+                                         self_mysql_affected_rows(centerMysqlp));
+                             } else {
+                                 errorPrint(LOGFILE, "ERR---Update satellite.all_ins.zl_zt, zl_id error %d: %s.\n", "错误---更新中央数据库zl_zt,zl_id失败（错误编号：%d，%s）.\n", self_mysql_errno(centerMysqlp), self_mysql_error(centerMysqlp));
+                                 return -6;
+                             }//if (!ret)
 
-                  }//if(gIntIsCenterDBConnected==1)
+                      }//if(gIntIsCenterDBConnected==1)
 
-             } else {
+                  }//if(-1!=intLastInsertedZLID){
+
+             } else {//插入本地库%s表失败
                  errorPrint(LOGFILE, "ERR---Insert into local DB %s error %d: %s\n", "错误---插入本地库%s表失败（错误编号：%d，%s）\n", table_name_YK_ZL, self_mysql_errno(selfMysqlp), self_mysql_error(selfMysqlp));
                 	/////////////////////////////////////////
                 	//更新统计信息
@@ -2452,7 +2461,10 @@ int readZlfromCenterDb(void){
                   gTotal.packageFailToInsertedToDB ++;
                   prgPrint(LOGFILE,"PRG---YCYK Fail to Insert 1 ZL (total %lu ZL) to local DB.：\n","过程---主线程入库失败1条指令 (共%lu条指令).\n",gTotal.packageFailToInsertedToDB);
 
-                  return -7;
+                  //2081-05-24
+                  //如果向本地库插入一条指令失败，就尝试下一条（continue），而非return
+                  //return -7;
+                  continue;
              }
 
 
