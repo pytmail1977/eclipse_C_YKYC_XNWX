@@ -2200,16 +2200,24 @@ int readZlfromCenterDb(void){
         	 return 0;
          }
 
-         int intZL_ID,intYY_ID,intZL_LX,intZL_BH;
+         int intYY_ID,intZL_LX,intZL_BH;
          string strZL_NR = "";
          unsigned char ucharZL_NR[ZL_MAX_LENGTH];
          bzero(ucharZL_NR,ZL_MAX_LENGTH);
          int intId;//指令在中央数据库中的id
          int intZlNrIsNull;//指示查处的指令内容是否为空
 
+         int intZLShouldBeDiscard; //在关键字段为空，或者因为应用id不对而插入本地库失败等情况下，将此变量置为1，在后续处理中，将中央数据库中的相应指令置为丢弃状态
          //读取第一条指令
          MYSQL_ROW mysql_row;
          while((mysql_row = self_mysql_fetch_row(centerMysqlp,mysql_result))){
+
+        	 intZLShouldBeDiscard = 0;
+        	 //2018-05-25
+        	 intYY_ID = 0;
+        	 intZL_LX = 0;
+        	 intZL_BH = 0;
+        	 intId = 0;
 
 
         	 strZL_NR = "";
@@ -2221,9 +2229,19 @@ int readZlfromCenterDb(void){
              /////////////////////////
              //读取指令
              /////////////////////////
+
+        	 //字段顺序
+        	 //select yh_bs,wx_bs,yy_id,zl_lx,zl_bh,zdy_sjy_blob,id from satellite.all_in
+
+             //2018-05-25
+             //对每个变量的赋值判断，都增加else intZLShouldBeDiscard = 1的语句，在相应值为空的情况下，作出标记，以便后续在中央数据库中将相应指令置为丢弃
+
              //更新卫星id和用户id
              if (mysql_row[0] != NULL)
             	 gUserId = atoi(mysql_row[0]);
+             //2018-05-25
+             else
+            	 intZLShouldBeDiscard = 1;
 
              //if (mysql_row[1] != NULL)
             	// gWxId = atoi(mysql_row[1]);
@@ -2231,16 +2249,28 @@ int readZlfromCenterDb(void){
 
              if (mysql_row[2] != NULL)
             	 intYY_ID = atoi(mysql_row[2]);
+             //2018-05-25
+             else
+            	 intZLShouldBeDiscard = 1;
 
              if (mysql_row[3] != NULL)
             	 intZL_LX = atoi(mysql_row[3]);
+             //2018-05-25
+             else
+            	 intZLShouldBeDiscard = 1;
 
              if (mysql_row[4] != NULL)
             	 intZL_BH = atoi(mysql_row[4]);
+             //2018-05-25
+             else
+            	 intZLShouldBeDiscard = 1;
 
              if (mysql_row[6] != NULL)
             	 intId = atoi(mysql_row[6]);
-
+             //2018-05-25
+             //如果id字段为空（不可能出现）就跳过
+             else
+            	 continue;
 
              if (mysql_row[5] != NULL){
             	 strZL_NR = mysql_row[5];
@@ -2269,18 +2299,11 @@ int readZlfromCenterDb(void){
              //对收到的指令进行处理（插入本地数据库）
              /////////////////////////////
 
-             //取指令内容并做脱字处理///////////
-             /*
-             unsigned char zlnr[507];
-             bzero(zlnr,507);
-             int zlnrLength = lenOfIns - ZL_HEAD_LENGTH;
 
+             /////////////////////////
+             //用构造插入本地数据库的sql
+             /////////////////////////
 
-             for (i=0;i<zlnrLength;i++)
-             	zlnr[i] = zlData[i+ZL_HEAD_LENGTH];
-             	*/
-
-             //用ucharZL_NR[]替换 zlnr[]
              string strInsertZL;
              if(intZlNrIsNull){
                  //构造插入本地数据库指令表的sql
@@ -2336,6 +2359,7 @@ int readZlfromCenterDb(void){
 
              }
           	sqlPrint(LOGFILE,"SQL---Insert table %s: %s\n","SQL---插入%s表SQL: %s\n",table_name_YK_ZL, strInsertZL.c_str());
+
         	//////////////////////
           	//指令入库
           	//////////////////////
@@ -2344,11 +2368,11 @@ int readZlfromCenterDb(void){
           	int count;
           	for(count=0;count<3;count++){
           		ret = self_mysql_query(selfMysqlp, strInsertZL.c_str());
-                  if (!ret) {
-                  	break;
-                  }else{
-                  	sleep(1);
-                  }
+                if (!ret) {
+                	break;
+                }else{
+                	sleep(1);
+                }
           	}
 
 
@@ -2412,7 +2436,10 @@ int readZlfromCenterDb(void){
                              self_mysql_free_result(selfMysqlp, mysql_result_select_lastZLID);
                          } else {
                              errorPrint(LOGFILE, "ERR---Select last Insert ZL_ID from local DB, error %d: %s.\n", "错误---查询刚插入的本地库指令表记录的ZL_ID失败（错误编号：%d，%s）.\n", self_mysql_errno(selfMysqlp), self_mysql_error(selfMysqlp));
-                             return -5;
+                             //2018-05-25
+                             //改return为continue
+                             //return -5;
+                             continue;
                          }//if (!ret)
 
                   }//if(gIntIsCenterDBConnected==1)
@@ -2445,7 +2472,10 @@ int readZlfromCenterDb(void){
                                          self_mysql_affected_rows(centerMysqlp));
                              } else {
                                  errorPrint(LOGFILE, "ERR---Update satellite.all_ins.zl_zt, zl_id error %d: %s.\n", "错误---更新中央数据库zl_zt,zl_id失败（错误编号：%d，%s）.\n", self_mysql_errno(centerMysqlp), self_mysql_error(centerMysqlp));
-                                 return -6;
+                                 //2018-05-25
+                                 //改return为continue
+                                 //return -6;
+                                 continue;
                              }//if (!ret)
 
                       }//if(gIntIsCenterDBConnected==1)
@@ -2461,12 +2491,46 @@ int readZlfromCenterDb(void){
                   gTotal.packageFailToInsertedToDB ++;
                   prgPrint(LOGFILE,"PRG---YCYK Fail to Insert 1 ZL (total %lu ZL) to local DB.：\n","过程---主线程入库失败1条指令 (共%lu条指令).\n",gTotal.packageFailToInsertedToDB);
 
-                  //2081-05-24
+
+
+                  //如果插入本地库失败，应该将中央数据库中的相应指令标记为丢弃,而不是return或continue直接处理下一条，因为那样会导致反复处理问题指令
+                  //2018-05-25
                   //如果向本地库插入一条指令失败，就尝试下一条（continue），而非return
                   //return -7;
-                  continue;
+                  intZLShouldBeDiscard = 1;
              }
 
+             //////////////////////////
+             //更新中央数据库中问题指令的状态为丢弃
+             //////////////////////////
+             if(intZLShouldBeDiscard == 1){
+                 //构造更新中央数据库问题指令的sql语句
+                 string strUpdate_ZLZT_2_GSCW = "update satellite.all_ins set zl_zt = " +
+                   			int2String(ZXJG_GSCW) +
+                   			" where id = "+
+                   			int2String(intId)+
+                   			";";
+                 sqlPrint(LOGFILE,"SQL---Update wrong ZL in satellite.all_ins: %s.\n","SQL---更新中央数据库错误指令，SQL: %s.\n",strUpdate_ZLZT_2_GSCW.c_str());
+
+
+                 //如果中央数据库连接就执行update操作
+                 if(gIntIsCenterDBConnected==1){
+                   	int ret = self_mysql_query(centerMysqlp, strUpdate_ZLZT_2_GSCW.c_str());
+
+                       if (!ret) {
+                            prgPrint(LOGFILE,"PRG---Update wrong ZL in satellite.all_ins success, affact %d rows.\n","过程---更新中央数据库错误指令的状态成功 ，影响%d行.\n",
+                                    self_mysql_affected_rows(centerMysqlp));
+                        } else {
+                            errorPrint(LOGFILE, "ERR---Update wrong ZL in satellite.all_ins error %d: %s.\n", "错误---更新中央数据库错误指令的状态失败（错误编号：%d，%s）.\n", self_mysql_errno(centerMysqlp), self_mysql_error(centerMysqlp));
+                            continue;
+                        }//if (!ret)
+
+                 }//if(gIntIsCenterDBConnected==1)
+
+
+
+
+             }
 
 
          }//while(mysql_row = self_mysql_fetch_row(result)){
@@ -2523,7 +2587,10 @@ int updateZlZttoCenterDb(void){
 
   	sqlPrint(LOGFILE,"SQL---select local db table %s: %s\n","SQL---读取本地数据库%s表SQL: %s\n","GJFW_YK_ZL", strGetZL_ZXJG.c_str());
 
+  	/////////////////////////////////
   	//读取本地数据库指令表，找到执行结果已经返回的记录，并将执行结果更新到中央数据库
+  	/////////////////////////////////
+
   	//如果本地数据库未连接就返回
   	if(gIntIsDbConnected!=1)
   		return -2;
@@ -2533,7 +2600,10 @@ int updateZlZttoCenterDb(void){
   		return -3;
 
 	int ret = self_mysql_query(selfMysqlp, strGetZL_ZXJG.c_str());
+
     if (!ret) {
+
+
 
 
          MYSQL_RES *mysql_result = self_mysql_store_result(selfMysqlp);
@@ -2545,11 +2615,15 @@ int updateZlZttoCenterDb(void){
          if (NULL != mysql_result){
              num_row = self_mysql_num_rows(selfMysqlp, mysql_result);
              tmpPrint(LOGFILE,"TMP---Select from %s %d rows in local db.\n","临时---从本地数据库 Select from %s %d 行.\n", table_name_YK_ZL,num_row);
+             printf("\\\\\\\\\\\\\\\\\\\\\n\\\\\\\\\\\\\\\\\\\n\\\\\\\\\\\\\n");
+             printf("num_row = %d",num_row);
+         	R2H("a")
          }
 
          //如果行数为0就释放记录并退出
          if(0 == num_row){
              tmpPrint(LOGFILE,"TMP---There is no dealed ZL in local db.\n","临时---本地数据库没有已完成指令.\n");
+             R2H("b")
              self_mysql_free_result(selfMysqlp, mysql_result);
         	 return 0;
          }
@@ -2560,11 +2634,11 @@ int updateZlZttoCenterDb(void){
 
          //读取第一条指令
          MYSQL_ROW mysql_row;
-
+         R2H("c")
          while((mysql_row = self_mysql_fetch_row(selfMysqlp,mysql_result))){
 
              prgPrint(LOGFILE,"PRG---Fetch a row of unread ZL from Center DB.\n","过程---从中央数据库取到一条未读指令\n.");
-
+             R2H("d")
 
              /////////////////////////
              //读取ZL_ID和指令执行结果
@@ -2580,7 +2654,7 @@ int updateZlZttoCenterDb(void){
              /////////////////////////////
              //对查到的指令执行结果进行处理（插入中央数据库）
              /////////////////////////////
-
+             R2H("e")
              //构造sql
              string strUpdateZLZT = "update satellite.all_ins set zl_zt = "  +
          			int2String(intZL_ZXJG) +
@@ -2596,7 +2670,7 @@ int updateZlZttoCenterDb(void){
          			int2String(DEVICE_ID) +
          			";";
 
-
+            R2H("f")
           	sqlPrint(LOGFILE,"SQL---update satellite.all_ins set zl_zt: %s\n","SQL---更新中央数据库指令表指令状态SQL: %s\n", strUpdateZLZT.c_str());
 
           	int ret;

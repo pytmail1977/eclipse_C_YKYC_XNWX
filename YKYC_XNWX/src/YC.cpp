@@ -225,7 +225,7 @@ int sendAxSsycOnXNWX(){
 
 
                        //向中央数据库插入遥测数据
-                       string strInsert_AXYC2CenterDB = "insert satellite.qlzx_test_yc(yh_bs,wx_lb,wx_bs,jd_lb,js_js,yc_xx) values( " +
+                       string strInsert_AXYC2CenterDB = "insert satellite.qlzx_jsjd_yc(yh_bs,wx_lb,wx_bs,jd_lb,js_js,yc_xx) values( " +
                     		   int2String(gUserId) +
                     		   "," +
                     		   int2String(WX_LB) +
@@ -235,9 +235,9 @@ int sendAxSsycOnXNWX(){
                     		   int2String(JD_LB) +
                     		   ",\'" +
                     		   getDateString() +
-                    		   "\','" +
+                    		   "\',\'" +
                     		   strYC +
-                    		   ");";
+                    		   "\');";
 
 
                         sqlPrint(LOGFILE,"SQL---Insert satellite.qlzx_test_yc: %s.\n","SQL---插入中央数据遥测，SQL: %s.\n",strInsert_AXYC2CenterDB.c_str());
@@ -889,7 +889,7 @@ int gatherZqSsycData(void){
                         //取出YY_AZZT内容，如果不为NULL，则记录
                         if (mysql_row[4] == NULL){
 
-                     	   errorPrint(LOGFILE,"ERR-C-Get a null column YY_AZZT in %s.\n","错误-C-%s表YY_AZZT列为空.\n", table_name_JKGL_YYZT);
+                     	   //errorPrint(LOGFILE,"ERR-C-Get a null column YY_AZZT in %s.\n","错误-C-%s表YY_AZZT列为空.\n", table_name_JKGL_YYZT);
                  	  	  //self_mysql_free_result(selfMysqlp,mysql_result);
                       	  //return -1;
                         }else{

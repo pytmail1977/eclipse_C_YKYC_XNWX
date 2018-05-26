@@ -1942,5 +1942,34 @@ DELIMITER ;
 		if(0 == num_row){
 	分支之后，改到
 		整个if语句之后
-6.修改readZlfromCenterDb（）函数，如果向本地库插入一条指令失败，就尝试下一条（continue），而非return
-7.完成sendAxSsycOnXNWX（）函数
+6.完成sendAxSsycOnXNWX（）函数
+
+2018-05-25
+1.修改readZlfromCenterDb（）函数，将原有的return -5 return -6 都改为continue。
+2.修改readZlfromCenterDb（）函数，在
+		     //读取第一条指令
+	         MYSQL_ROW mysql_row;
+	         while((mysql_row = self_mysql_fetch_row(centerMysqlp,mysql_result))){
+       之后，增加每次循环之前对变量的初始化动作
+             //2018-05-25
+        	 intYY_ID = 0;
+        	 intZL_LX = 0;
+        	 intZL_BH = 0;
+        	 intId = 0;
+3.修改readZlfromCenterDb（）函数，增加一个变量int intZLShouldBeDiscard;在关键字段为空，或者因为应用id不对而插入本地库失败等情况下，将此变量置为1，在后续处理中，将中央数据库中的相应指令置为丢弃状态
+4.修改readZlfromCenterDb（）函数，
+		在
+			 /////////////////////////
+             //读取指令
+             /////////////////////////
+        之后，对每个变量的赋值判断，都增加else intZLShouldBeDiscard = 1的语句，在相应值为空的情况下，作出标记，以便后续在中央数据库中将相应指令置为丢弃
+        修改
+        	} else {//插入本地库%s表失败
+        之后的
+        	return -7
+        为
+        	      //如果插入本地库失败，应该将中央数据库中的相应指令标记为丢弃,而不是return或continue直接处理下一条，因为那样会导致反复处理问题指令
+                  //2018-05-25
+                  //如果向本地库插入一条指令失败，就尝试下一条（continue），而非return
+                  //return -7;
+                  intZLShouldBeDiscard = 1;

@@ -179,6 +179,7 @@
 #define ZXJG_SB -4//执行失败
 #define ZXJG_GSCW -5 //指令格式错误，如指令内容为空
 
+
 //////////////////////
 //数据库表名
 //////////////////////
@@ -433,7 +434,7 @@
 //虚拟卫星ID
 #define WX_ID 3
 //节点类别
-#define JD_LB 0x14 //节点类别
+#define JD_LB 30 //节点类别
 #endif
 
 #endif /* CONST_H_ */
