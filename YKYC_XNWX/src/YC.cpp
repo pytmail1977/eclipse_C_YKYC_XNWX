@@ -210,7 +210,6 @@ int sendAxSsycOnXNWX(){
             			   ", YC_NR=" +
             			   strYYSC_NR;
 
-            	   printf("//////////////////\n/////////////////\n////////////////\n\n\n");
 
 
                    ////////////////////////////
@@ -630,7 +629,7 @@ void* main_loop_of_YC(void *arg){
 //发送按需实时遥测数据
 #ifdef _SEND_SOCKET_DATA
 #ifndef _RUN_ON_XNWX
-		sendAxSsyc();
+		sendAxSsycOnSocket();
 #else
 		sendAxSsycOnXNWX();
 #endif

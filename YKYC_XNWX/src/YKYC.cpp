@@ -45,6 +45,7 @@ gOutput = fopen(FILENAME,FILEMODE);
 
     if(0 != strcmp(ip, "")){
         //printf("***********************************************%s ip is %s\n",IF_NAME, ip);
+		msgPrint(LOGFILE,"MSG---Ip address of interface %s is %s.\n","消息---本机网络接口%s的ip地址为%s.\n",IF_NAME, ip);
         sprintf(charTmp,"%s",ip);
         int i;
         for (i=0;i<strlen(charTmp);i++){
@@ -75,6 +76,7 @@ gOutput = fopen(FILENAME,FILEMODE);
         	gDeviceId = 0x21;
         else{
         	//printf("ip address is not match.\n");
+    		errorPrint(LOGFILE,"ERR---Ip address is not match device id.\n","错误---本机ip与设备id不符.\n");
         	return -3 ;
         }
        // printf("***********************************************Dvice id is %d\n", gDeviceId);
@@ -84,6 +86,7 @@ gOutput = fopen(FILENAME,FILEMODE);
     }else
     {
     	//printf("can not get ip address.\n");
+    	errorPrint(LOGFILE,"ERR---Can not get ip address.\n","错误---获取ip地址失败.\n");
     	return -3 ;
     }
 #endif
@@ -1736,7 +1739,7 @@ int onZL_JKGL_YYSJQL(int zl_id,unsigned char* ucharZL_NR){
 	//////////////////////////////////////////////////////////////
 	string strDeleteYSYCPZX = "delete from " +
 			string(table_name_YC_YSYCPZX) +
-			"where YSYCPZX_LY = 2"
+			" where YSYCPZX_LY = 2"
 			";";
 
 	sqlPrint(LOGFILE,"SQL---Truncate table %s: %s .\n","SQL---清除%s表SQL: %s.\n",table_name_YC_YSYCPZX,strDeleteYSYCPZX.c_str());
@@ -1824,7 +1827,7 @@ int onZL_KZZL_PZ(int zl_id,unsigned char* ucharZL_NR){
  * @0：未读到数据；
  * @1:成功；
  */
-int readSocket(void){
+int readZlfromSocket(void){
 	GET_FUNCSEQ
 	fucPrint(LOGFILE,"FUC+++YKYC.cpp FUNC: readSocket is called.\n","调用+++YKYC.cpp的函数: readSocket.\n");
 
@@ -2114,7 +2117,7 @@ int recvZl(void){
 	return 1;
 #endif
 }
-
+#ifdef _RUN_ON_XNWX
 /*
  * 功能： 从中央数据库读取指令
  * 参数：
@@ -2172,7 +2175,7 @@ int readZlfromCenterDb(void){
 
 
   	sqlPrint(LOGFILE,"SQL---select center db table %s: %s\n","SQL---读取中央数据库%s表SQL: %s\n","satellite.all_ins", strReadZL.c_str());
-  	printf("SQL---select center db table %s: %s\n","satellite.all_ins", strReadZL.c_str());
+  	//printf("SQL---select center db table %s: %s\n","satellite.all_ins", strReadZL.c_str());
 
   	///////////////////////////////////////////
   	//读取中央数据库指令表并插入本地指令库表
@@ -2550,10 +2553,10 @@ int readZlfromCenterDb(void){
     return 1;
 }
 
+#endif //ifdef _RUN_ON_XNWX
 
 
-
-
+#ifdef _RUN_ON_XNWX
 /*
  * 更新中央数据库中的指令状态
  * @1:执行成功
@@ -2615,15 +2618,13 @@ int updateZlZttoCenterDb(void){
          if (NULL != mysql_result){
              num_row = self_mysql_num_rows(selfMysqlp, mysql_result);
              tmpPrint(LOGFILE,"TMP---Select from %s %d rows in local db.\n","临时---从本地数据库 Select from %s %d 行.\n", table_name_YK_ZL,num_row);
-             printf("\\\\\\\\\\\\\\\\\\\\\n\\\\\\\\\\\\\\\\\\\n\\\\\\\\\\\\\n");
-             printf("num_row = %d",num_row);
-         	R2H("a")
+             //printf("\\\\\\\\\\\\\\\\\\\\\n\\\\\\\\\\\\\\\\\\\n\\\\\\\\\\\\\n");
+             //printf("num_row = %d",num_row);
          }
 
          //如果行数为0就释放记录并退出
          if(0 == num_row){
              tmpPrint(LOGFILE,"TMP---There is no dealed ZL in local db.\n","临时---本地数据库没有已完成指令.\n");
-             R2H("b")
              self_mysql_free_result(selfMysqlp, mysql_result);
         	 return 0;
          }
@@ -2634,11 +2635,9 @@ int updateZlZttoCenterDb(void){
 
          //读取第一条指令
          MYSQL_ROW mysql_row;
-         R2H("c")
          while((mysql_row = self_mysql_fetch_row(selfMysqlp,mysql_result))){
 
              prgPrint(LOGFILE,"PRG---Fetch a row of unread ZL from Center DB.\n","过程---从中央数据库取到一条未读指令\n.");
-             R2H("d")
 
              /////////////////////////
              //读取ZL_ID和指令执行结果
@@ -2654,7 +2653,6 @@ int updateZlZttoCenterDb(void){
              /////////////////////////////
              //对查到的指令执行结果进行处理（插入中央数据库）
              /////////////////////////////
-             R2H("e")
              //构造sql
              string strUpdateZLZT = "update satellite.all_ins set zl_zt = "  +
          			int2String(intZL_ZXJG) +
@@ -2670,7 +2668,6 @@ int updateZlZttoCenterDb(void){
          			int2String(DEVICE_ID) +
          			";";
 
-            R2H("f")
           	sqlPrint(LOGFILE,"SQL---update satellite.all_ins set zl_zt: %s\n","SQL---更新中央数据库指令表指令状态SQL: %s\n", strUpdateZLZT.c_str());
 
           	int ret;
@@ -2741,3 +2738,4 @@ int updateZlZttoCenterDb(void){
     return 1;
 
 }
+#endif //ifdef _RUN_ON_XNWX

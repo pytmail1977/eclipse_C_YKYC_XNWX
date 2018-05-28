@@ -1942,6 +1942,7 @@ DELIMITER ;
 		if(0 == num_row){
 	分支之后，改到
 		整个if语句之后
+		
 6.完成sendAxSsycOnXNWX（）函数
 
 2018-05-25
@@ -1973,3 +1974,28 @@ DELIMITER ;
                   //如果向本地库插入一条指令失败，就尝试下一条（continue），而非return
                   //return -7;
                   intZLShouldBeDiscard = 1;
+                
+2018-05-28
+1、当在mac上编译时，IF_NAME定义为网络接口“en0”
+	#ifdef _BUILD_ON_MAC
+	#define IF_NAME "en0"
+	#else
+	#define IF_NAME "eth0"
+	#endif //ifdef _BUILD_ON_MAC
+2、修改onZL_JKGL_YYSJQL（）函数，这里的sql有错误，where前缺空格
+	将
+		//////////////////////////////////////////////////////////////
+		//清理应用GJFW_YC_YSYCPZX表，删除指令配置的延时遥测配置项
+		//////////////////////////////////////////////////////////////
+		string strDeleteYSYCPZX = "delete from " +
+				string(table_name_YC_YSYCPZX) +
+				"where YSYCPZX_LY = 2"
+				";";
+	改为
+		//////////////////////////////////////////////////////////////
+		//清理应用GJFW_YC_YSYCPZX表，删除指令配置的延时遥测配置项
+		//////////////////////////////////////////////////////////////
+		string strDeleteYSYCPZX = "delete from " +
+				string(table_name_YC_YSYCPZX) +
+				" where YSYCPZX_LY = 2"
+				";";

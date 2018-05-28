@@ -16,7 +16,7 @@
 #ifdef _RUN_ON_XNWX
 #define DEVICE_ID  0x1E //如果在虚拟卫星上运行设备地址都为0x1E
 #else
-#define DEVICE_ID  0x20 //设备地址，30-33为4个云计算节点
+#define DEVICE_ID  0x21 //设备地址，30-33为4个云计算节点
 #endif
 
 //////////////////////
@@ -399,8 +399,12 @@
 //为记录当前秒数（自1970年）
 #define UTC_NTP 2208988800U /* 1970 - 1900 */
 
-
+//当在mac上编译时，IF_NAME定义为网络接口“en0”
+#ifdef _BUILD_ON_MAC
+#define IF_NAME "en0"
+#else
 #define IF_NAME "eth0"
+#endif //ifdef _BUILD_ON_MAC
 
 	////////////////////////
 	//JCDY connect time out count while init

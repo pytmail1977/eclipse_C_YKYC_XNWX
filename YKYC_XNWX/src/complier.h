@@ -115,7 +115,7 @@
 
 
 //如果定义则是运行在虚拟卫星上
-#define _RUN_ON_XNWX
+//#define _RUN_ON_XNWX
 
 #ifndef _RUN_ON_XNWX
 //如果定义，则for all node
