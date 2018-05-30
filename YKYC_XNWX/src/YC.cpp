@@ -535,7 +535,11 @@ int sendAxSsycOnSocket(void){
                   	    */
                         //按需遥测次数自增
                         gAxYcCount ++;
+                  	}else{
+                  		errorPrint(LOGFILE,"ERR-C-Net interrupted, can not send Axssyc.\n","错误-C-网络中断，无法发送按需遥测数据.\n");
+
                   	}//if (gIntIsSocketConnected == 1)
+
                }//if (0 != num_row){
               self_mysql_free_result(selfMysqlp,mysql_result);
 

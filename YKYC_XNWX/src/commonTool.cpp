@@ -25,6 +25,11 @@ int connectSocket(void){
 	GET_FUNCSEQ
 	fucPrint(LOGFILE,"FUC++++++commonTool.cpp FUNC: connectSocket is called.\n","调用++++++commonTool.cpp的函数: connectSocket.\n");
 
+	if(1 == gIntIsSocketConnected){
+		prgPrint(LOGFILE,"PRG-T-connectSocket() will do nothing because gIntIsSocketConnected = 1.\n","过程-T-connectSocket()无事可做，因为网络状态为连接.\n");
+		return -1;
+	}
+
     memset(&gNetSocket.remote_addr,0,sizeof(gNetSocket.remote_addr)); //数据初始化--清零
     gNetSocket.client_sockfd = -1; //数据初始化
 
@@ -70,12 +75,21 @@ int closeSocket(void){
 	fucPrint(LOGFILE,"FUC++++++commonTool.cpp FUNC: closeSocket is called.\n","调用++++++commonTool.cpp的函数: closeSocket.\n");
 
 
-	if(1 == gIntIsSocketConnected){
-		gIntIsSocketConnected = 0;
-		return (close(gNetSocket.client_sockfd));//关闭套接字
-	}
-	else
+	if(0 == gIntIsSocketConnected){
+		prgPrint(LOGFILE,"PRG-T-closeSocket() will do nothing because gIntIsSocketConnected = 0.\n","过程-T-closeSocket()无事可做，因为网络状态为关闭.\n");
 		return -1;
+	}
+
+	int ret = close(gNetSocket.client_sockfd);
+	if (!ret){
+		msgPrint(LOGFILE,"MSG-T-closeSocket success.\n","消息-T-closeSocket成功.\n");
+		gIntIsSocketConnected = 0;
+	}else{
+		msgPrint(LOGFILE,"MSG-T-closeSocket fail.\n","消息-T-closeSocket失败.\n");
+		//gIntIsSocketConnected = 0;
+	}
+	return ret;
+
 }
 
 #endif
@@ -102,7 +116,7 @@ int connectDB(mysql_t * Mysql){
 	//mysql_library_init(0,NULL,NULL);
 
 	if (NULL == mysql_init(&Mysql->mysql)) {    //分配和初始化MYSQL对象
-        errorPrint(LOGFILE,"ERR-T-mysql_init(): %s.\n","错误-T-初始化MYSQL对象失败: %s.\n", mysql_error(&Mysql->mysql));
+		errorPrint(LOGFILE,"ERR-T-mysql_init(): %s.\n","错误-T-初始化MYSQL对象失败: %s.\n", mysql_error(&Mysql->mysql));
         return -1;
     }
 

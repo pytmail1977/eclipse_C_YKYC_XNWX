@@ -1878,7 +1878,9 @@ int readZlfromSocket(void){
 	    }
 	    else
 	    	return 0;
-	}//if
+	}else{
+		errorPrint(LOGFILE,"ERR-C-Net interrupted, can not read zl from socket.\n","错误-C-网络中断，无法从socket上读取指令.\n");
+	}//if (gIntIsSocketConnected == 1)
 	//tmpPrint(LOGFILE,"TMP---readSocket success.\n","消息---从服务器读取指令数据成功.\n");
 
 
@@ -2006,7 +2008,10 @@ void sendZqSsycOnSocket(void){
 
 	    //周期遥测计数自增
 	    gZqYcCount++;
-	}//if
+	}else{
+		errorPrint(LOGFILE,"ERR-C-Net interrupted, can not send Zqssyc to socket.\n","错误-C-网络中断，无法向socket发送周期遥测.\n");
+	}
+
 
 	msgPrint(LOGFILE,"MSG---sendZqSsyc success.\n","消息---发送周期实时遥测数据成功.\n");
 
@@ -2084,12 +2089,14 @@ void zlReconnect(void){
 	//链接服务器，如果失败就返回-2
 	///////////////////////////////
 #ifdef	_CONNECT_TO_SERVER
-	//断开链接
+	//先断开链接
 	closeSocket();
 
 	if (0 >= connectSocket()){
-		errorPrint(LOGFILE,"ERR---Can't connect ZL server:%d.\n","错误---链接服务器失败（错误编号：%d）.\n", errno);
+		errorPrint(LOGFILE,"ERR---Can't reconnect ZL server:%d.\n","错误---重新链接服务器失败（错误编号：%d）.\n", errno);
 		//return -2;//-2表示无法链接到指令转发服务
+	}else{
+		msgPrint(LOGFILE,"MSG---Reconnect ZL server success.\n","消息---重新链接服务器成功.\n");
 	}
 	gTotal.countOfReConnZlServer++;
 
