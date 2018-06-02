@@ -55,7 +55,7 @@ int connectSocket(void){
     }
 
     gIntIsSocketConnected = 1;
-    //msgPrint(LOGFILE,"MSG-T-Connected to socket successfully.\n","消息-T-链接socket成功.\n");
+    msgPrint(LOGFILE,"MSG-T-Connected to socket successfully.\n","消息-T-链接socket成功.\n");
 
 
 	return 1;
@@ -412,6 +412,8 @@ void initBuffer(buffer_t* buffer){
 	GET_FUNCSEQ
 	fucPrint(LOGFILE,"FUC++++++commonTool.cpp FUNC: initBuffer is called.\n","调用++++++commonTool.cpp的函数: initBuffer.\n");
 
+	if(NULL == buffer)
+		return;
 	bzero(buffer, sizeof(buffer_t));
 	//worm_mutex_init(&(buffer->mutex),NULL);
 	worm_mutex_init(&(buffer->mutex));

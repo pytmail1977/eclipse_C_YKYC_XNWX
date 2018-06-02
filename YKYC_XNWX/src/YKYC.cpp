@@ -250,15 +250,17 @@ gOutput = fopen(FILENAME,FILEMODE);
 	//if (0>=connectDB(&gMysql[_YKYC])){
 		errorPrint(LOGFILE,"ERR---Can't connect DB:%d.\n","错误---链接数据库失败（错误编号：%d）.\n", errno);
 		return -1; //-1表示无法链接到数据库
-	}else if (0>=connectDB(&gMysql[_YK])){
-		closeDB(&gMysql[_YKYC]);
-		errorPrint(LOGFILE,"ERR---Can't connect DB:%d.\n","错误---链接数据库失败（错误编号：%d）.\n", errno);
-		return -1;
-	}else if (0>=connectDB(&gMysql[_YC])){
-		closeDB(&gMysql[_YKYC]);
-		closeDB(&gMysql[_YK]);
-		errorPrint(LOGFILE,"ERR---Can't connect DB:%d.\n","错误---链接数据库失败（错误编号：%d）.\n", errno);
-		return -1;
+	}else{
+		if (0>=connectDB(&gMysql[_YK])){
+				closeDB(&gMysql[_YKYC]);
+				errorPrint(LOGFILE,"ERR---Can't connect DB:%d.\n","错误---链接数据库失败（错误编号：%d）.\n", errno);
+				return -1;
+			}else if (0>=connectDB(&gMysql[_YC])){
+				closeDB(&gMysql[_YKYC]);
+				closeDB(&gMysql[_YK]);
+				errorPrint(LOGFILE,"ERR---Can't connect DB:%d.\n","错误---链接数据库失败（错误编号：%d）.\n", errno);
+				return -1;
+			}
 	}
 
 	/* 20171227 change
@@ -296,7 +298,7 @@ gOutput = fopen(FILENAME,FILEMODE);
 */
 	if (0 >= connectSocket()){
 		errorPrint(LOGFILE,"ERR---Can't connect ZL server:%d.\n","错误---链接服务器失败（错误编号：%d）.\n", errno);
-		//return -2;//-2表示无法链接到指令转发服务
+		//return -2;//-2表示无法链接到指令转发服务//无法连接也要往下走，通过重连解决问题
 	}
 	////////////////////////////////
 	//链接服务器MAX_ZL_CONNECT_TIMEOUT_WHILE_INIT，如果失败就返回-2
@@ -341,7 +343,7 @@ gOutput = fopen(FILENAME,FILEMODE);
 	/////////////////////////////////
 	//ZL connect timeout count
 	/////////////////////////////////
-	 gZLConnectionTimeOut = MAX_ZL_CONNECT_TIMEOUT;
+	gZLConnectionTimeOut = MAX_ZL_CONNECT_TIMEOUT;
 
 	msgPrint(LOGFILE,"MSG---Init success.\n","消息---初始化成功.\n");
 	return 1;
@@ -748,9 +750,10 @@ void onMainTimer(int)
 	    prgPrint(LOGFILE,"PRG---It is time to deal with zl.\n", "过程---准备执行指令");
 	    //处理给自己的指令
 	    gZLConnectionTimeOut--;
+	    printf("gZLConnectionTimeOut=%d\n\n",gZLConnectionTimeOut);
 	    if (gZLConnectionTimeOut<=0){
-	    	gZLConnectionTimeOut = MAX_ZL_CONNECT_TIMEOUT;
-	         errorPrint(LOGFILE,"ERR---Lost heart beats. reconnect to zl server.\n","错误---Lose heart beats. reconnect to zl server.\n");
+
+	        errorPrint(LOGFILE,"ERR---Lost heart beats. reconnect to zl server.\n","错误---Lose heart beats. reconnect to zl server.\n");
 	    	zlReconnect();
 	    }
 	}
@@ -986,17 +989,10 @@ int main(void) {
 	//初始化
 	//////////////////
 	int ret = init();
-	/*
-	int ret=0;
-	while(1!=ret){
-		sleep(3);
-		ret = init();
-	}
-	*/
 
 
 	if (-1 == ret){
-		//errorPrint(LOGFILE,"ERR---Can't connect DB:%s.\n", strerror(ret));
+		errorPrint(LOGFILE,"ERR---Can't connect DB:%s.\n", strerror(ret));
 		quit(RET_ERR_CONNECT_DB);
 		return RET_ERR_CONNECT_SERVER;//表示连库失败
 	}
@@ -1067,6 +1063,7 @@ int main(void) {
     /////////////////////////////////////////////////////
 	//启动基础定时器
     /////////////////////////////////////////////////////
+
 #ifdef _SETTIMER
 	//struct itimerval * pOldValue = new (struct itimerval);
 	ret = startMainTimer(NULL);
@@ -2096,7 +2093,9 @@ void zlReconnect(void){
 		errorPrint(LOGFILE,"ERR---Can't reconnect ZL server:%d.\n","错误---重新链接服务器失败（错误编号：%d）.\n", errno);
 		//return -2;//-2表示无法链接到指令转发服务
 	}else{
+		printf("错误顺序！");
 		msgPrint(LOGFILE,"MSG---Reconnect ZL server success.\n","消息---重新链接服务器成功.\n");
+		gZLConnectionTimeOut = MAX_ZL_CONNECT_TIMEOUT;
 	}
 	gTotal.countOfReConnZlServer++;
 
