@@ -255,9 +255,9 @@ my_ulonglong STDCALL self_mysql_affected_rows(mysql_t* pMYsql){
 
 	my_ulonglong STDCALL ret;
 
-	worm_mutex_lock(&pMYsql->mutex,funcSeq);
+	worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
 	ret = mysql_affected_rows(&pMYsql->mysql);
-	worm_mutex_unlock(&pMYsql->mutex,funcSeq);
+	worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
 
 	return ret;
 }
@@ -271,9 +271,9 @@ int		STDCALL self_mysql_query(mysql_t* pMYsql, const char *q){
 
 	int ret;
 
-	worm_mutex_lock(&pMYsql->mutex,funcSeq);
+	worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
 	ret = mysql_query(&pMYsql->mysql,q);
-	worm_mutex_unlock(&pMYsql->mutex,funcSeq);
+	worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
 
 	return ret;
 }
@@ -287,9 +287,9 @@ int		STDCALL self_mysql_real_query(mysql_t* pMYsql, const char *q,unsigned long 
 
 	int ret;
 
-	worm_mutex_lock(&pMYsql->mutex,funcSeq);
+	worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
 	ret = mysql_real_query(&pMYsql->mysql,q,length);
-	worm_mutex_unlock(&pMYsql->mutex,funcSeq);
+	worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
 
 	return ret;
 
@@ -303,9 +303,9 @@ unsigned int STDCALL self_mysql_errno(mysql_t* pMYsql){
 	fucPrint(LOGFILE,"FUC++++++commonTool.cpp FUNC: self_mysql_errno is called.\n","调用++++++commonTool.cpp的函数: self_mysql_errno.\n");
 
 	unsigned int STDCALL ret;
-	//worm_mutex_lock(&pMYsql->mutex,funcSeq);
+	//worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
 	ret = mysql_errno(&pMYsql->mysql);
-	//worm_mutex_unlock(&pMYsql->mutex,funcSeq);
+	//worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
 
 	return ret;
 
@@ -321,11 +321,11 @@ const char * STDCALL self_mysql_error(mysql_t* pMYsql){
 	const char * STDCALL ret;
 
 
-	worm_mutex_lock(&pMYsql->mutex,funcSeq);
+	worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
 
 	ret = mysql_error(&pMYsql->mysql);
 
-	worm_mutex_unlock(&pMYsql->mutex,funcSeq);
+	worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
 
 
 	return ret;
@@ -340,9 +340,9 @@ MYSQL_RES *     STDCALL self_mysql_store_result(mysql_t* pMYsql){
 	fucPrint(LOGFILE,"FUC++++++commonTool.cpp FUNC: self_mysql_store_result is called.\n","调用++++++commonTool.cpp的函数: self_mysql_store_result.\n");
 
 	MYSQL_RES *     STDCALL ret;
-	worm_mutex_lock(&pMYsql->mutex,funcSeq);
+	worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
 	ret = mysql_store_result(&pMYsql->mysql);
-	worm_mutex_unlock(&pMYsql->mutex,funcSeq);
+	worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
 
 	return ret;
 
@@ -357,9 +357,9 @@ my_ulonglong STDCALL self_mysql_num_rows(mysql_t* pMYsql,MYSQL_RES *res){
 
 	my_ulonglong STDCALL ret;
 
-	worm_mutex_lock(&pMYsql->mutex,funcSeq);
+	worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
 	ret = mysql_num_rows(res);
-	worm_mutex_unlock(&pMYsql->mutex,funcSeq);
+	worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
 
 	return ret;
 
@@ -374,9 +374,9 @@ void		STDCALL self_mysql_free_result(mysql_t* pMYsql,MYSQL_RES *result){
 
 	//void		STDCALL ret;
 
-	worm_mutex_lock(&pMYsql->mutex,funcSeq);
+	worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
 	mysql_free_result(result);
-	worm_mutex_unlock(&pMYsql->mutex,funcSeq);
+	worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
 
 	//return ret;
 }
@@ -391,9 +391,9 @@ MYSQL_ROW	STDCALL self_mysql_fetch_row(mysql_t* pMYsql,MYSQL_RES *result){
 
 	MYSQL_ROW ret;
 
-	worm_mutex_lock(&pMYsql->mutex,funcSeq);
+	worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
 	ret = mysql_fetch_row(result);
-	worm_mutex_unlock(&pMYsql->mutex,funcSeq);
+	worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
 
 	return ret;
 }
@@ -452,10 +452,10 @@ int lengthOfBuffer(buffer_t* buffer){
 
 	int length = 0;
 
-	worm_mutex_lock(&buffer->mutex,funcSeq);
+	worm_mutex_lock(&buffer->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&buffer->mutex,funcSeq);
 	if(buffer->head != -1)
 		length = (buffer->tail + BUFFER_SIZE -buffer->head +1)%BUFFER_SIZE;
-	worm_mutex_unlock(&buffer->mutex,funcSeq);
+	worm_mutex_unlock(&buffer->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&buffer->mutex,funcSeq);
 
 	return length;
 }
@@ -481,7 +481,7 @@ int pushBuffer(buffer_t* buffer, __uint8_t data[], int dataLength){
 		return -1;//空间不足
 */
 	//如果队列为空，则从头开始写
-	worm_mutex_lock(&buffer->mutex,funcSeq);
+	worm_mutex_lock(&buffer->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&buffer->mutex,funcSeq);
 	//检查空间是否够
 
 	//不用lengthOfBuffer（）
@@ -495,7 +495,7 @@ int pushBuffer(buffer_t* buffer, __uint8_t data[], int dataLength){
 
 
 	if (dataLength>emptyroom){
-		worm_mutex_unlock(&buffer->mutex,funcSeq);
+		worm_mutex_unlock(&buffer->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&buffer->mutex,funcSeq);
 		return -1;//空间不足
 	}
 
@@ -517,7 +517,7 @@ int pushBuffer(buffer_t* buffer, __uint8_t data[], int dataLength){
 		buffer->tail = (buffer->tail+dataLength)%BUFFER_SIZE;
 
 	}
-	worm_mutex_unlock(&buffer->mutex,funcSeq);
+	worm_mutex_unlock(&buffer->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&buffer->mutex,funcSeq);
 
 	return 1;
 }
@@ -543,7 +543,7 @@ int popBuffer(buffer_t* buffer, __uint8_t data[], int dataLength){
 	if(bufferLength < dataLength)
 		return -1; //数据不够则返回
 */
-	worm_mutex_lock(&buffer->mutex,funcSeq);
+	worm_mutex_lock(&buffer->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&buffer->mutex,funcSeq);
 	//判断是否有足够数据
 	//不用lengthOfBuffer（）
 	int length = 0;
@@ -554,7 +554,7 @@ int popBuffer(buffer_t* buffer, __uint8_t data[], int dataLength){
 	int bufferLength = length;
 
 	if(bufferLength < dataLength){
-		worm_mutex_unlock(&buffer->mutex,funcSeq);
+		worm_mutex_unlock(&buffer->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&buffer->mutex,funcSeq);
 		return -1; //数据不够则返回
 	}
 
@@ -570,7 +570,7 @@ int popBuffer(buffer_t* buffer, __uint8_t data[], int dataLength){
 		buffer->head = -1;
 		buffer->tail = -1;
 	}
-	worm_mutex_unlock(&buffer->mutex,funcSeq);
+	worm_mutex_unlock(&buffer->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&buffer->mutex,funcSeq);
 
 	return 1;
 }
@@ -608,7 +608,7 @@ int cleanBuffer2Index(buffer_t* buffer, int index){
 	if(( (tail+1)%BUFFER_SIZE < head) && ((index < head) && (index > (tail+1)%BUFFER_SIZE )))
 		return -1;
 
-	worm_mutex_lock(&buffer->mutex,funcSeq);
+	worm_mutex_lock(&buffer->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&buffer->mutex,funcSeq);
 	buffer->head = index;
 
 	//如果队列为空了，则出队后头尾指针复位
@@ -616,7 +616,7 @@ int cleanBuffer2Index(buffer_t* buffer, int index){
 		buffer->head = -1;
 		buffer->tail = -1;
 	}
-	worm_mutex_unlock(&buffer->mutex,funcSeq);
+	worm_mutex_unlock(&buffer->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&buffer->mutex,funcSeq);
 
 	return 1;
 }
@@ -646,7 +646,7 @@ int readBuffer(buffer_t* buffer, __uint8_t data[], int dataLength, int from){
 	if(bufferLength < dataLength+from)
 		return -1; //数据不够则返回
 */
-	worm_mutex_lock(&buffer->mutex,funcSeq);
+	worm_mutex_lock(&buffer->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&buffer->mutex,funcSeq);
 	//不用lengthOfBuffer（）
 	int length = 0;
 	if(buffer->head != -1)
@@ -658,7 +658,7 @@ int readBuffer(buffer_t* buffer, __uint8_t data[], int dataLength, int from){
 	tmpPrint(LOGFILE,"TMP-T-lengthOfBuffer is %d.\n","临时-T-lengthOfBuffer为%d.\n",bufferLength);
 
 	if(bufferLength < dataLength+from){
-		worm_mutex_unlock(&buffer->mutex,funcSeq);
+		worm_mutex_unlock(&buffer->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&buffer->mutex,funcSeq);
 		return -1; //数据不够则返回
 	}
 
@@ -668,7 +668,7 @@ int readBuffer(buffer_t* buffer, __uint8_t data[], int dataLength, int from){
 		dataPrint(LOGFILE,"[%d]=%02X ","[%d]=%02X ",i+buffer->head+from,data[i]);
 	}
 
-	worm_mutex_unlock(&buffer->mutex,funcSeq);
+	worm_mutex_unlock(&buffer->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&buffer->mutex,funcSeq);
 
 	return 1;
 }
@@ -697,7 +697,7 @@ int findBuffer(buffer_t* buffer, __uint8_t data[], int dataLength){
 	if(bufferLength < dataLength)
 		return index; //数据不够则肯定找不到，返回-1
 */
-	worm_mutex_lock(&buffer->mutex,funcSeq);
+	worm_mutex_lock(&buffer->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&buffer->mutex,funcSeq);
 	//不用lengthOfBuffer（）
 	int length = 0;
 	if(buffer->head != -1)
@@ -707,7 +707,7 @@ int findBuffer(buffer_t* buffer, __uint8_t data[], int dataLength){
 	int bufferLength = length;
 
 	if(bufferLength < dataLength){
-		worm_mutex_unlock(&buffer->mutex,funcSeq);
+		worm_mutex_unlock(&buffer->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&buffer->mutex,funcSeq);
 		return index; //数据不够则肯定找不到，返回-1
 	}
 
@@ -724,7 +724,7 @@ int findBuffer(buffer_t* buffer, __uint8_t data[], int dataLength){
 			break; //for(i = 0;i<bufferLength;i++){
 		}
 	}
-	worm_mutex_unlock(&buffer->mutex,funcSeq);
+	worm_mutex_unlock(&buffer->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&buffer->mutex,funcSeq);
 
 	return index;
 }
@@ -744,7 +744,7 @@ int printBuffer(buffer_t* buffer){
 	int i;
 
 
-	worm_mutex_lock(&buffer->mutex,funcSeq);
+	worm_mutex_lock(&buffer->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&buffer->mutex,funcSeq);
 	//不用lengthOfBuffer（）
 	int length = 0;
 	if(buffer->head != -1)
@@ -755,7 +755,7 @@ int printBuffer(buffer_t* buffer){
 
 	if(bufferLength == 0){
 		//dataPrint(LOGFILE,"DAT-T-Buffer is empty.\n");
-		worm_mutex_unlock(&buffer->mutex,funcSeq);
+		worm_mutex_unlock(&buffer->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&buffer->mutex,funcSeq);
 		return bufferLength;
 	}
 
@@ -767,7 +767,7 @@ int printBuffer(buffer_t* buffer){
 		//从队列里读取一个长度为bufferLength的字串
 		normalPrint(LOGFILE,"%02X ","%02X ",buffer->buff[(i+buffer->head)%BUFFER_SIZE]);
 	}
-	worm_mutex_unlock(&buffer->mutex,funcSeq);
+	worm_mutex_unlock(&buffer->mutex); //2018-6-3不再使用funcSeq //worm_mutex_unlock(&buffer->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&buffer->mutex,funcSeq);
 	normalPrint(LOGFILE,"\n","\n");
 
 	return bufferLength;
@@ -781,19 +781,24 @@ int printBuffer(buffer_t* buffer){
  * 返回值：
  * 无
  */
-void prePrint(funcSeq_t funcSeq){
-
+//2018-6-3 不再使用参数funcSeq_t funcSeq
+//void prePrint(funcSeq_t funcSeq){
+void prePrint(void){
 	time_t nowtime;
 	struct tm * tm;
 	time(&nowtime);
 	tm = localtime(&nowtime);
 
-
+//2018-6-3 不再使用参数funcSeq_t funcSeq
+/*
 #ifdef _PRE_PRINT_THREAD_AND_FUNCSEQ
 	printf("(%4d-%02d-%02d, %02d:%02d:%02d) [T-%lu][F-%lu] ",tm->tm_year+1900,tm->tm_mon+1,tm->tm_mday,tm->tm_hour,tm->tm_min,tm->tm_sec,(unsigned long)(pthread_self()),(unsigned long)(funcSeq));
 #else
 	printf("(%4d-%02d-%02d, %02d:%02d:%02d) ",tm->tm_year+1900,tm->tm_mon+1,tm->tm_mday,tm->tm_hour,tm->tm_min,tm->tm_sec);
 #endif
+*/
+	printf("(%4d-%02d-%02d, %02d:%02d:%02d) ",tm->tm_year+1900,tm->tm_mon+1,tm->tm_mday,tm->tm_hour,tm->tm_min,tm->tm_sec);
+
 
 }
 
@@ -857,13 +862,15 @@ void copyUCharArray(const __uint8_t *src, __uint8_t *dst, int count)
  * 返回值：
  * 随机数；
  */
+//2018-6-3 取消函数定义funcSeq_t getRandFuncSeq()
+/*
 funcSeq_t getRandFuncSeq(){
 
 	//此函数不能加函数调用输出，因为那个功能需要调用这个函数
 	funcSeq_t funcSeq = rand();
 	return(funcSeq);
 }
-
+*/
 
 
 
@@ -909,6 +916,12 @@ void wormhole_mutex_destroy(worm_mutex_t *pWormMutex){
 
 }
 
+
+//2018-6-3修改以下三个函数定义，取消参数funcSeq_t funcSeq
+//void wormhole_mutex_lock(worm_mutex_t *pWormMutex, funcSeq_t funcSeq);
+//void wormhole_mutex_unlock(worm_mutex_t *pWormMutex, funcSeq_t funcSeq);
+//int  wormhole_mutex_trylock(worm_mutex_t *pWormMutex, funcSeq_t funcSeq);
+
 /*
  * 功能：请求锁
  * 参数：
@@ -916,7 +929,8 @@ void wormhole_mutex_destroy(worm_mutex_t *pWormMutex){
  * 返回值：
  * 无
  */
-void wormhole_mutex_lock(worm_mutex_t *pWormMutex, funcSeq_t funcSeq){
+//void wormhole_mutex_lock(worm_mutex_t *pWormMutex, funcSeq_t funcSeq){
+void wormhole_mutex_lock(worm_mutex_t *pWormMutex){
 	//GET_FUNCSEQ //这里会报重复定义
 	//fucPrint(LOGFILE,"FUC++++++commonTool.c FUNC: wormhole_mutex_lock is called.\n","调用++++++commonTool.c的函数: wormhole_mutex_lock.\n");
 
@@ -936,7 +950,9 @@ void wormhole_mutex_lock(worm_mutex_t *pWormMutex, funcSeq_t funcSeq){
 	pthread_mutex_lock(&pWormMutex->mutex);
 	pWormMutex->pt = selfPt;
 	//pyt20150520 在锁住之后，除了将pt置为1，还将funcSeq记入pWormMutex->funcSeq
-	pWormMutex->funcSeq = funcSeq;
+	//2018-6-3 不再记录funcSeq
+	//pWormMutex->funcSeq = funcSeq;
+
 	//prgPrint(LOGFILE,"PRG-T-wormhole_mutex_lock: end of lock.\n","过程-T-wormhole_mutex_lock: 结束加锁.\n");
 	//msgPrint(LOGFILE,"TMP-T-wormhole_mutex_lock: A mutex %d is lock by thread %d func %d.\n","消息-T-wormhole_mutex_lock: 锁-%d被线程-%d函数-%d加锁.\n",&pWormMutex->mutex, selfPt, funcSeq);
 }
@@ -949,7 +965,8 @@ void wormhole_mutex_lock(worm_mutex_t *pWormMutex, funcSeq_t funcSeq){
  * 返回值：
  * 无
  */
-void wormhole_mutex_unlock(worm_mutex_t *pWormMutex, funcSeq_t funcSeq){
+//void wormhole_mutex_unlock(worm_mutex_t *pWormMutex, funcSeq_t funcSeq){
+void wormhole_mutex_unlock(worm_mutex_t *pWormMutex){
 	//GET_FUNCSEQ //这里会报重复定义
 	//fucPrint(LOGFILE,"FUC++++++commonTool.c FUNC: wormhole_mutex_unlock is called.\n","调用++++++commonTool.c调用: wormhole_mutex_unlock.\n");
 	//prgPrint(LOGFILE,"PRG-T-wormhole_mutex_unlock: begin of unlock.\n","过程-T-wormhole_mutex_unlock: 开始解锁.\n");
@@ -983,6 +1000,9 @@ void wormhole_mutex_unlock(worm_mutex_t *pWormMutex, funcSeq_t funcSeq){
 	*/
 
 
+	//2018-6-3 解锁的时候不再判断是不是当前函数实例锁住了相应对象，只要线程是当前线程就可以解锁
+	//改
+	/*
 	//如果正被本线程锁住且锁住的是本函数实体
 	if( (selfPt == pWormMutex->pt) && (funcSeq == pWormMutex->funcSeq) ){
 		pWormMutex->pt = 0;
@@ -994,6 +1014,21 @@ void wormhole_mutex_unlock(worm_mutex_t *pWormMutex, funcSeq_t funcSeq){
 		msgPrint(LOGFILE,"MSG-T-wormhole_mutex_unlock: given mutex %lu is locked by thread %lu func %d, this thread %lu func %d can not unlock it!!!!!!!!!!!!!!.\n",
 				"消息-T-wormhole_mutex_unlock: 锁-%lu被线程-%lu函数-%d锁住,本县程-%lu函数-%d无法解锁它!!!!!!!!!!!!!!.\n",
 				long(&pWormMutex->mutex),(unsigned long int)(pWormMutex->pt),pWormMutex->funcSeq,(unsigned long int)(selfPt),funcSeq);
+		//DEBUG_STOP
+	}
+	*/
+	//为
+	//如果正被本线程锁住且锁住的是本函数实体
+	if( (selfPt == pWormMutex->pt) ){
+		pWormMutex->pt = 0;
+		//pWormMutex->funcSeq = -1;
+		pthread_mutex_unlock(&pWormMutex->mutex);
+		//msgPrint(LOGFILE,"MSG-T-wormhole_mutex_unlock: A mutex %d is unlock by thread %d func %d.\n","消息-T-wormhole_mutex_unlock: 锁-%d被线程-%d函数-%d解锁.\n",&pWormMutex->mutex, selfPt, funcSeq);
+
+	}else{
+		msgPrint(LOGFILE,"MSG-T-wormhole_mutex_unlock: given mutex %lu is locked by thread %lu, this thread %lu can not unlock it!!!!!!!!!!!!!!.\n",
+				"消息-T-wormhole_mutex_unlock: 锁-%lu被线程-%lu锁住,本线程-%lu无法解锁它!!!!!!!!!!!!!!.\n",
+				long(&pWormMutex->mutex),(unsigned long int)(pWormMutex->pt),(unsigned long int)(selfPt));
 		//DEBUG_STOP
 	}
 
@@ -1010,7 +1045,8 @@ void wormhole_mutex_unlock(worm_mutex_t *pWormMutex, funcSeq_t funcSeq){
  * @0：此锁被本线程锁住；
  * @其它：调用pthread_mutex_trylock返回值；
  */
-int  wormhole_mutex_trylock(worm_mutex_t *pWormMutex, funcSeq_t funcSeq){
+//int  wormhole_mutex_trylock(worm_mutex_t *pWormMutex, funcSeq_t funcSeq){
+int  wormhole_mutex_trylock(worm_mutex_t *pWormMutex){
 	//GET_FUNCSEQ //这里会报重复定义
 	//fucPrint(LOGFILE,"FUC++++++commonTool.c FUNC: wormhole_mutex_trylock is called.\n","调用++++++commonTool.c的函数: wormhole_mutex_trylock.\n");
 
@@ -1027,7 +1063,8 @@ int  wormhole_mutex_trylock(worm_mutex_t *pWormMutex, funcSeq_t funcSeq){
 	//pyt20150520 在锁住之后，除了将pt置为1，还将funcSeq记入pWormMutex->funcSeq
 	if(0 == ret){
 		pWormMutex->pt = selfPt;
-		pWormMutex->funcSeq = funcSeq;
+		//2018-6-3 不再记录funcSeq
+		//pWormMutex->funcSeq = funcSeq;
 		//msgPrint(LOGFILE,"MSG-T-wormhole_mutex_trylock: A mutex %d is lock by thread %d func %d.\n","消息-T-wormhole_mutex_trylock: 锁-%d被线程-%d函数-%d加锁.\n",&pWormMutex->mutex,selfPt,funcSeq);
 	}
 

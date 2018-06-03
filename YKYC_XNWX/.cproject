@@ -597,13 +597,13 @@
                             							
                             <targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.MachO64" id="cdt.managedbuild.target.gnu.platform.macosx.base.1437780992" name="Debug Platform" osList="macosx" superClass="cdt.managedbuild.target.gnu.platform.macosx.base"/>
                             							
-                            <builder buildPath="${workspace_loc:/YKYC_XNWX}/DebugOnMacForElf" id="cdt.managedbuild.target.gnu.builder.macosx.base.1153926209" name="Gnu Make Builder.DebugOnMacForElf" superClass="cdt.managedbuild.target.gnu.builder.macosx.base"/>
+                            <builder buildPath="${workspace_loc:/YKYC_XNWX}/DebugOnMacForElf" id="cdt.managedbuild.target.gnu.builder.macosx.base.1153926209" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.macosx.base"/>
                             							
                             <tool id="cdt.managedbuild.tool.macosx.c.linker.macosx.base.1249998546" name="MacOS X C Linker" superClass="cdt.managedbuild.tool.macosx.c.linker.macosx.base"/>
                             							
                             <tool id="cdt.managedbuild.tool.macosx.cpp.linker.macosx.base.955111989" name="MacOS X C++ Linker" superClass="cdt.managedbuild.tool.macosx.cpp.linker.macosx.base">
                                 								
-                                <option id="macosx.cpp.link.option.libs.1961178546" superClass="macosx.cpp.link.option.libs" valueType="libs">
+                                <option id="macosx.cpp.link.option.libs.1961178546" name="Libraries (-l)" superClass="macosx.cpp.link.option.libs" valueType="libs">
                                     									
                                     <listOptionValue builtIn="false" value="mysqlclient"/>
                                     									
@@ -611,7 +611,7 @@
                                     								
                                 </option>
                                 								
-                                <option id="macosx.cpp.link.option.paths.1902655185" superClass="macosx.cpp.link.option.paths" valueType="libPaths">
+                                <option id="macosx.cpp.link.option.paths.1902655185" name="Library search path (-L)" superClass="macosx.cpp.link.option.paths" valueType="libPaths">
                                     									
                                     <listOptionValue builtIn="false" value="/usr/local/Cellar/mysql/5.7.18_1/lib"/>
                                     								
@@ -637,15 +637,15 @@
                             							
                             <tool id="cdt.managedbuild.tool.gnu.cpp.compiler.macosx.base.1916115616" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.macosx.base">
                                 								
-                                <option id="gnu.cpp.compiler.option.include.paths.977268742" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+                                <option id="gnu.cpp.compiler.option.include.paths.977268742" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
                                     									
                                     <listOptionValue builtIn="false" value="/usr/local/Cellar/mysql/5.7.18_1/include/mysql"/>
                                     								
                                 </option>
                                 								
-                                <option id="gnu.cpp.compiler.option.optimization.level.1352735053" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
+                                <option id="gnu.cpp.compiler.option.optimization.level.1352735053" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
                                 								
-                                <option id="gnu.cpp.compiler.option.debugging.level.2065595792" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
+                                <option id="gnu.cpp.compiler.option.debugging.level.2065595792" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
                                 								
                                 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1006774834" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
                                 							
@@ -653,15 +653,15 @@
                             							
                             <tool id="cdt.managedbuild.tool.gnu.c.compiler.macosx.base.615682661" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.macosx.base">
                                 								
-                                <option id="gnu.c.compiler.option.include.paths.640791985" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
+                                <option id="gnu.c.compiler.option.include.paths.640791985" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
                                     									
                                     <listOptionValue builtIn="false" value="/usr/local/Cellar/mysql/5.7.18_1/include/mysql"/>
                                     								
                                 </option>
                                 								
-                                <option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.option.optimization.level.471685041" superClass="gnu.c.compiler.option.optimization.level" valueType="enumerated"/>
+                                <option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.option.optimization.level.471685041" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" valueType="enumerated"/>
                                 								
-                                <option id="gnu.c.compiler.option.debugging.level.1583166776" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
+                                <option id="gnu.c.compiler.option.debugging.level.1583166776" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
                                 								
                                 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1534197504" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
                                 							
