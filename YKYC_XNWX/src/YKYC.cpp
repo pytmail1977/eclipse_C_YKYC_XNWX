@@ -770,7 +770,8 @@ void onMainTimer(int)
 	#endif
 
 		if(gBaseTimerCount%PRINT_TOTAL_INTERVAL == 1){
-			printTJXJ();
+			//printTJXJ();
+
 		}
 
 	}else{
@@ -803,6 +804,15 @@ void onMainTimer(int)
 				//DEBUG_STOP
 				;
 			}
+
+			//发送按需实时遥测数据
+			#ifdef _SEND_SOCKET_DATA
+			#ifndef _RUN_ON_XNWX
+					sendAxSsycOnSocket();
+			#else
+					sendAxSsycOnXNWX();
+			#endif
+			#endif
 		}
 #endif
 
@@ -960,7 +970,7 @@ int main(void) {
 	//初始化随机数种子，用于调试时给每个函数的每次运行一个不重复的随机编号
 	/////////////////////
 	//为了临近两次调用getRandFuncSeq()的结果也不同，需要协调getRandAddr()函数，将srand((unsigned)time(NULL));语句统一放到函数外部，在main()中调用。
-	srand((unsigned)time(NULL));
+	//srand((unsigned)time(NULL));
 
 
 	/////////////////////

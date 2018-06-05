@@ -922,6 +922,32 @@ void wormhole_mutex_destroy(worm_mutex_t *pWormMutex){
 //void wormhole_mutex_unlock(worm_mutex_t *pWormMutex, funcSeq_t funcSeq);
 //int  wormhole_mutex_trylock(worm_mutex_t *pWormMutex, funcSeq_t funcSeq);
 
+
+
+
+#ifdef _USE_LOCK_SAMPLE
+void wormhole_mutex_lock(worm_mutex_t *pWormMutex){
+
+	if(!pWormMutex)
+		return;
+	pthread_mutex_lock(&pWormMutex->mutex);
+}
+
+void wormhole_mutex_unlock(worm_mutex_t *pWormMutex){
+	if(!pWormMutex)
+		return;
+
+	pthread_mutex_unlock(&pWormMutex->mutex);
+
+}
+int  wormhole_mutex_trylock(worm_mutex_t *pWormMutex){
+	if(!pWormMutex)
+		return -1;
+	int ret;
+	ret = pthread_mutex_trylock(&pWormMutex->mutex);
+	return ret;
+}
+#else
 /*
  * 功能：请求锁
  * 参数：
@@ -1072,7 +1098,7 @@ int  wormhole_mutex_trylock(worm_mutex_t *pWormMutex){
 
 
 }
-
+#endif //ifdef_USE_LOCK_SAMPLE
 /*
  * 功能：查询谁锁定了指定的锁
  * 参数：

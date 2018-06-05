@@ -2078,3 +2078,81 @@ DELIMITER ;
 		worm_mutex_trylock(&buffer->mutex);//2018-6-3 不再使用funcSeq //worm_mutex_trylock(&buffer->mutex,funcSeq);
 		
 worm_mutex_unlock(&buffer->mutex); //2018-6-3不再使用funcSeq //worm_mutex_unlock(&buffer->mutex,funcSeq);		
+
+2018-6-5
+1.取消多余的GET_FUNCSEQ定义
+	 	#define GET_FUNCSEQ funcSeq_t funcSeq = getRandFuncSeq();
+	改为
+		//#define GET_FUNCSEQ funcSeq_t funcSeq = getRandFuncSeq();
+	
+2.将lenovo连接mac时的网络接口
+	由
+		#define IF_NAME "eth4"
+	改为
+		#define IF_NAME "wlan5"
+3.不再开启遥测子线程
+		#define _STARTYCTHREAD
+	改为
+		//#define _STARTYCTHREAD
+4.在处理指令的周期，发送原来在遥测线程中发出的按需遥测
+	将
+			if(1 == recvZl()){
+				//DEBUG_STOP
+				;
+			}
+	改为
+			if(1 == recvZl()){
+				//DEBUG_STOP
+				;
+			}
+			
+			//发送按需实时遥测数据
+			#ifdef _SEND_SOCKET_DATA
+			#ifndef _RUN_ON_XNWX
+					sendAxSsycOnSocket();
+			#else
+					sendAxSsycOnXNWX();
+			#endif
+			#endif
+5.因为多次测试发现printTJXJ()函数调用lengthOfBuffer（）时会导致所有进程（不管时包括YC时的三个进程，还是取消雅策进程后的两个进程）停在试图加锁的处理中。所以索性取消
+			printTJXJ();
+	改为
+			//printTJXJ();
+			
+6.将解锁函数中pWormMutex->pt = 0;的执行位置放到调用pthread_mutex_unlock（）之后
+	将
+		if( (selfPt == pWormMutex->pt) ){
+			pWormMutex->pt = 0;
+			//pWormMutex->funcSeq = -1;
+			pthread_mutex_unlock(&pWormMutex->mutex);
+	改为
+		if( (selfPt == pWormMutex->pt) ){
+			//pWormMutex->funcSeq = -1;
+			pthread_mutex_unlock(&pWormMutex->mutex);
+			pWormMutex->pt = 0;
+7.定义一个编译开关“_USE_LOCK_SAMPLE”，控制使用简单的加锁和解锁动作（不记录是哪个线程锁住的对象）
+	#ifdef _USE_LOCK_SAMPLE
+	void wormhole_mutex_lock(worm_mutex_t *pWormMutex){
+	
+		if(!pWormMutex)
+			return;
+		pthread_mutex_lock(&pWormMutex->mutex);
+	}
+	
+	void wormhole_mutex_unlock(worm_mutex_t *pWormMutex){
+		if(!pWormMutex)
+			return;
+	
+		pthread_mutex_unlock(&pWormMutex->mutex);
+	
+	}
+	int  wormhole_mutex_trylock(worm_mutex_t *pWormMutex){
+		if(!pWormMutex)
+			return -1;
+		int ret;
+		ret = pthread_mutex_trylock(&pWormMutex->mutex);
+		return ret;
+	}
+	#else
+	.......
+	#endif

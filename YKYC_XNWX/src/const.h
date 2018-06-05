@@ -404,7 +404,7 @@
 #define IF_NAME "en0"
 #else
 #ifdef _RUN_ON_LENOVO
-#define IF_NAME "eth4"
+#define IF_NAME "wlan5"
 #else
 #define IF_NAME "eth0"
 #endif //ifdef _RUN_ON_LENOVO
