@@ -65,7 +65,7 @@
 //#define _STARTYCTHREAD
 
 //如果定义，则启动遥控线程
-#define _STARTYKTHREAD
+//#define _STARTYKTHREAD
 
 
 //如果定义，则启动定时器

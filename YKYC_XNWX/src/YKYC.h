@@ -59,7 +59,7 @@ __uint8_t socketReadBuffer[SOCKET_READ_LENGTH];
 ////////////////////////////
 int main(void);
 //主线程循环
-void main_loop_of_main_thread(void);
+//void main_loop_of_main_thread(void);
 
 
 
@@ -164,7 +164,7 @@ int updateZlZttoCenterDb(void);
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 //遥测线程主循环
-void* main_loop_of_YC(void *arg);
+//void* main_loop_of_YC(void *arg);
 //读取数据库，更新每个采集周期的延时遥测配置项列表
 int getYSYCPZX(void);
 //响应定时刷新信号，更新本地状态表和监控管理服务YY状态表

@@ -731,8 +731,11 @@ void onMainTimer(int)
 	//根据定时器超时次数是偶数还是奇数分别调用实时遥测数据采集和实时遥测数据发送
 	if(gBaseTimerCount%2 == 1){
 
+		///////////////////////////////////////////////////////////////////
 		//if的这一半都要用“==1”来判是否到了触发时间
-//周期性发送的实时遥测数据采集
+		///////////////////////////////////////////////////////////////////
+
+//1.1-周期性发送的实时遥测数据采集/////////////////////
 #ifdef _GETHER_SSYC_DATA
 		if(gBaseTimerCount%SSYC_CJ_INTERVAL == 1){
 			prgPrint(LOGFILE,"PRG---It is time to gather Ssyc data.\n", "过程---准备收集实时遥测数据.\n");
@@ -740,7 +743,7 @@ void onMainTimer(int)
 		}
 #endif
 
-//处理指令
+//1.2-处理指令/////////////////////
 #ifdef _DEAL_WITH_ZL
 
 	if(gBaseTimerCount%DEAL_WITH_ZL_INTERVAL == 1){
@@ -750,8 +753,9 @@ void onMainTimer(int)
 	}
 #endif
 
+//1.3-判断是否需要重新连接集成但愿///////
 #ifndef _RUN_ON_XNWX
-	//reconnect zl server if gZLConnectionTimeOut<=0
+
 	if(gBaseTimerCount%ZL_CONNECTION_INTERVAL == 1){
 	    prgPrint(LOGFILE,"PRG---It is time to deal with zl.\n", "过程---准备执行指令");
 	    //处理给自己的指令
@@ -764,8 +768,9 @@ void onMainTimer(int)
 	    }
 	}
 #endif
-	//存储实时遥测历史数据
-	#ifdef _STORE_SSYC_LSSJ
+
+//1.4-存储实时遥测历史数据//////////////////
+#ifdef _STORE_SSYC_LSSJ
 
 		if(gBaseTimerCount%SSYCLS_STORE_INTERVAL == 1){
 		    prgPrint(LOGFILE,"PRG---It is time to store ssyc data.\n","过程---准备存储实时遥测数据");
@@ -773,17 +778,21 @@ void onMainTimer(int)
 		    //printf("+++++++storeSSycLsSj+++++++\n");
 		    storeSSycLsSj();
 		}
-	#endif
+#endif
 
+//1.5-输出统计信息/////////////////////////
 		if(gBaseTimerCount%PRINT_TOTAL_INTERVAL == 1){
 			//printTJXJ();
 
 		}
 
-	}else{
-		//if的这一半都要用“==0”来判是否到了触发时间
+}else{
 
-//发周期实时遥测数据
+		///////////////////////////////////////////////////////////////////
+		//if的这一半都要用“==0”来判是否到了触发时间
+		///////////////////////////////////////////////////////////////////
+
+//2.1-发周期实时遥测数据//////////
 
 #ifdef _SEND_SOCKET_DATA
 #ifdef _SEND_ZQ_SSYC
@@ -802,27 +811,30 @@ void onMainTimer(int)
 #endif
 #endif
 
-//接收遥控数据
+//2.2-接收遥控数据，并解析入库////
 #ifdef _RECV_SOCKET_DATA
 		if(gBaseTimerCount%SOCKET_RECV_INTERVAL == 0){
 			prgPrint(LOGFILE,"PRG---It is time to recv ZL data.\n", "过程---准备接收指令数据.\n");
 			if(1 == recvZl()){
 				//DEBUG_STOP
-				;
+				resolveZl();
 			}
 
-			//发送按需实时遥测数据
-			#ifdef _SEND_SOCKET_DATA
-			#ifndef _RUN_ON_XNWX
-					sendAxSsycOnSocket();
-			#else
-					sendAxSsycOnXNWX();
-			#endif
-			#endif
 		}
 #endif
 
-//采集延时遥测数据
+//2.3-发送按需实时遥测数据////
+#ifdef _SEND_SOCKET_DATA
+		if(gBaseTimerCount%SEND_AXYC_INTERVAL == 0){
+#ifndef _RUN_ON_XNWX
+			sendAxSsycOnSocket();
+#else
+			sendAxSsycOnXNWX();
+#endif
+		}
+#endif
+
+//2.4-采集延时遥测数据
 //延时遥测数据采集放在实时遥测数据发送的半秒调度
 #ifdef _GETHER_YSYC_DATA
 
@@ -831,7 +843,7 @@ void onMainTimer(int)
 
 #endif
 
-//更新应用状态
+//2.5-更新应用状态
 #ifdef _UPDATE_STATE
 
 		if(gBaseTimerCount%UPDATE_STATE_INTERVAL == 0){
@@ -1077,19 +1089,7 @@ int main(void) {
 
 
 
-    /////////////////////////////////////////////////////
-	//启动基础定时器
-    /////////////////////////////////////////////////////
 
-#ifdef _SETTIMER
-	//struct itimerval * pOldValue = new (struct itimerval);
-	ret = startMainTimer(NULL);
-	if (ret!=1){
-		//msgPrint(LOGFILE,"MSG---Can't start base timer: %s.\n", strerror(ret));
-		quit(RET_ERR_START_BASE_TIMER);
-		return RET_ERR_START_BASE_TIMER; //表示设置定时器失败
-	}
-#endif
 
 
 
@@ -1137,7 +1137,7 @@ int main(void) {
 
 #ifdef  _TRUNCATE_SSYCSJ_TABLE_WHENRESTART
     /////////////////////////
-    //delete SSYCSJ when started
+    //d开始处理前，清除所有未发送按需遥测
     /////////////////////////
     deleteSSYCSJWhenStart();
 #endif
@@ -1146,15 +1146,15 @@ int main(void) {
     //////////////////////////
     //main主循环
     //////////////////////////
-    msgPrint(LOGFILE,"MSG---Began main loop of main thread.\n", "消息---进入主线程循环.\n");
-    main_loop_of_main_thread();
+    //msgPrint(LOGFILE,"MSG---Began main loop of main thread.\n", "消息---进入主线程循环.\n");
+    //main_loop_of_main_thread();
 
+    //msgPrint(LOGFILE,"MSG---Ended main loop. Waiting for subThreads return.\n","消息---主线程循环结束，等待子线程返回.\n");
 
 
     //////////////////////////////////////////////////////
     //等待YC线程和YK线程返回，并输出返回值
     //////////////////////////////////////////////////////
-    msgPrint(LOGFILE,"MSG---Ended main loop. Waiting for subThreads return.\n","消息---主线程循环结束，等待子线程返回.\n");
 
 #ifdef _STARTYCTHREAD
 
@@ -1174,6 +1174,20 @@ int main(void) {
 
 #endif
 
+
+    /////////////////////////////////////////////////////
+	//启动基础定时器
+    /////////////////////////////////////////////////////
+
+#ifdef _SETTIMER
+	//struct itimerval * pOldValue = new (struct itimerval);
+	ret = startMainTimer(NULL);
+	if (ret!=1){
+		//msgPrint(LOGFILE,"MSG---Can't start base timer: %s.\n", strerror(ret));
+		quit(RET_ERR_START_BASE_TIMER);
+		return RET_ERR_START_BASE_TIMER; //表示设置定时器失败
+	}
+#endif
 
     /////////////////////////////
     //退出前执行必要的操作
@@ -1914,6 +1928,7 @@ int readZlfromSocket(void){
  * 返回值：
  * 无
  */
+/*
 void main_loop_of_main_thread(void){
 	GET_FUNCSEQ
 	fucPrint(LOGFILE,"FUC+++YKYC.cpp FUNC: main_loop_of_main_thread is called.\n","调用+++YKYC.cpp的函数: main_loop_of_main_thread.\n");
@@ -1943,6 +1958,9 @@ void main_loop_of_main_thread(void){
 	 }//while
 
 }
+
+*/
+
 #ifdef _RUN_ON_XNWX
 /*
  * 功能：发送需要周期发送的实时遥测数据到中央数据库
@@ -3365,7 +3383,7 @@ int sendAxSsycOnSocket(void){
 
 
 #endif
-
+/*
 void* main_loop_of_YC(void *arg){
 	GET_FUNCSEQ
 	fucPrint(LOGFILE,"FUC-C-YC.c FUNC: main_loop_of_YC is called.\n","调用-C-YC.c的函数: main_loop_of_YC.\n");
@@ -3438,6 +3456,8 @@ void* main_loop_of_YC(void *arg){
 
 	//return ( (void*)1);
 }
+
+*/
 
 /*
 //启动调用遥测处理函数的定时器

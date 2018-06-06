@@ -323,6 +323,9 @@
 #define SSYCLS_STORE_INTERVAL (10*(NUM_OF_BASE_TIMER_TICK_FOR_A_SECOND)) //10s写数据库一次实时遥测历史数据
 #endif
 
+//发送按需遥测超时时间
+#define SEND_AXYC_INTERVAL (1*(NUM_OF_BASE_TIMER_TICK_FOR_A_SECOND)) //1s发送一次按需遥测
+
 #define ZL_CONNECTION_INTERVAL (1*(NUM_OF_BASE_TIMER_TICK_FOR_A_SECOND)) //1s gZLConnectionTimeOut--
 //////////////////////
 //休眠时间

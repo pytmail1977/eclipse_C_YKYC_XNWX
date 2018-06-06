@@ -2275,3 +2275,79 @@ int  wormhole_mutex_trylock(worm_mutex_t *pWormMutex){
 		selfMysqlp = &gMysql[_YKYC];
 4、修改commonTool.h和commonTool.cpp中的函数mysql_t * getMysql(void);取消
 5、将commonTool.cpp中所有的self_mysql_*（）函数中，取消加锁操作
+
+2018-6-7-2
+1、取消函数void* main_loop_of_YC(void *arg)
+2、取消函数void main_loop_of_main_thread(void)
+3、将函数void* main_loop_of_YK(void *arg)改为int resolveZl(void)。并做如下修改
+	（1）将
+			while(gIntIsRun)
+		改为
+		 	//while(gIntIsRun)
+		 将
+		 		}//while
+		 改为
+			 //	}//while
+	(2)将
+			contiue;
+		改为
+			//continue;
+			return 0;
+	(3)除了三次尝试进行数据库操作的break（从 for循环跳出），将
+			break;
+		改为
+			//break;
+			return -1;
+	（4）取消pthread_exit相关内容
+			int *pRet =  (int*)malloc(sizeof(int));
+			*pRet = 2;
+		
+			msgPrint(LOGFILE,"MSG-K-main_loop_of_YK is going to close.\n","消息-K-遥控线程将关闭.\n");
+		
+			pthread_exit((void*)pRet);
+			//pthread_exit((void*)(&retValOfThreadYK));
+			//return ( (void*)1);	
+	（5）取消循环中sleep等相关语句
+			#ifndef _LOOP
+			    	//调试，如果没有链接到服务器则暂不循环
+			    	break;
+			#else
+			    	//sleep(SLEEP_YK_LOOP);
+			#endif
+	(6)在函数末尾加上
+		return 1;
+4.修改compiler.h
+	//#define _STARTYKTHREAD
+5.修改YKYC.cpp将开启定时器的操作放在清除所有未处理的指令和清除所有未发送按需遥测之后
+6.修改const.h，增加定义
+	//发送按需遥测超时时间
+	#define SEND_AXYC_INTERVAL (1*(NUM_OF_BASE_TIMER_TICK_FOR_A_SECOND)) //1s发送一次按需遥测
+7.修改onMainTimer()
+	将
+		if(gBaseTimerCount%SOCKET_RECV_INTERVAL == 0){
+			prgPrint(LOGFILE,"PRG---It is time to recv ZL data.\n", "过程---准备接收指令数据.\n");
+			if(1 == recvZl()){
+				//DEBUG_STOP
+				;
+			}
+	改为
+		 if(gBaseTimerCount%SOCKET_RECV_INTERVAL == 0){
+				prgPrint(LOGFILE,"PRG---It is time to recv ZL data.\n", "过程---准备接收指令数据.\n");
+				if(1 == recvZl()){
+					//DEBUG_STOP
+					resolveZl();
+				}
+	
+			}
+	将发送按需遥测数据的操作单独出来:
+		//2.3-发送按需实时遥测数据////
+		#ifdef _SEND_SOCKET_DATA
+				if(gBaseTimerCount%SEND_AXYC_INTERVAL == 0){
+		#ifndef _RUN_ON_XNWX
+					sendAxSsycOnSocket();
+		#else
+					sendAxSsycOnXNWX();
+		#endif
+				}
+		#endif	
+			

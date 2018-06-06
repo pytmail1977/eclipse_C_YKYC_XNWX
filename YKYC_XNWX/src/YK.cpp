@@ -10,7 +10,8 @@
 #include "YK.h"
 
 #ifndef _RUN_ON_XNWX
-void* main_loop_of_YK(void *arg){
+//void* main_loop_of_YK(void *arg){
+int resolveZl(void){
 	GET_FUNCSEQ
 	fucPrint(LOGFILE,"FUC-K-+YK.c FUNC: main_loop_of_YK is called.\n","调用-K-YK.c的函数: main_loop_of_YK.\n");
 
@@ -48,7 +49,7 @@ void* main_loop_of_YK(void *arg){
 
 
 
-	while(gIntIsRun){
+//	while(gIntIsRun){
 
 		//printYK("YK thread begain while.\n");
 
@@ -71,7 +72,8 @@ void* main_loop_of_YK(void *arg){
 		int indexOfSyncHeader = findBuffer(&gSocketBuffer,gSYNC_HEADER,LEN_OF_TCP_SYNC);
         if (indexOfSyncHeader<0){
         	//printYK("YK thread not find Sync Header.\n");
-        	continue;
+        	//continue;
+        	return 0;
         }
 
 	    tmpPrint(LOGFILE,"TMP-K-Find Sync Head from socketBuffer.\n","临时-K-在socketBuffer中发现同步头.\n");
@@ -89,7 +91,8 @@ void* main_loop_of_YK(void *arg){
         if(-1 == retOfRead){
         	prgPrint(LOGFILE,"PRG-K-Buffer is not ready for read out all TCP Head long = %d.\n","过程-K-数据未到全，暂无法按TCP应用头指定的长度%d读取.\n",LEN_OF_TCP_LENGTH);
         	printYK("YK thread wait for the length part of  ZL.\n");
-        	continue;
+        	//continue;
+        	return 0;
         }
 
         //dataPrint(LOGFILE,"DAT-K-Get a SyncHeader at %d\n",indexOfSyncHeader);
@@ -107,7 +110,9 @@ void* main_loop_of_YK(void *arg){
         	 if(-1 == retOfRead){
         		 prgPrint(LOGFILE,"PRG-K-Buffer is not ready for read out all Ins long = %d.\n","过程-K-数据未到全，暂无法按指定指令长度%d读出.\n",lenOfIns);
         		 printYK("YK thread wait for the compliment ZL.\n");
-        		 continue;
+        		 //continue;
+        		 return 0;
+
         	 }
 
         	 //为避免等待后续socket数据的时候反复输出，这两行挪到这里
@@ -154,7 +159,9 @@ void* main_loop_of_YK(void *arg){
          	//如果弹出gSocketBuffer出现错误则退出YK循环
              if(rett == -1){
          		errorPrint(LOGFILE,"ERR-K-Pop gSocketBuffer error, There is no enough data.\n","错误-K-从gSocketBuffer弹出数据错误，长度不足.\n");
-         		break;
+         		//break;
+         		return -1;
+
              }
 
              //////////////////////////////////////////
@@ -210,7 +217,8 @@ void* main_loop_of_YK(void *arg){
         	//如果清除gSocketBuffer出现错误则退出YK循环
         	if(ret == -1){
         		errorPrint(LOGFILE,"ERR-K-Empty gSocketBuffer error, There is no enough data.\n","错误-K-清空gSocketBuffer缓冲错误, 没有足够数据.\n");
-        		break;
+        		//break;
+        		return -1;
         	}
 
 
@@ -232,7 +240,8 @@ void* main_loop_of_YK(void *arg){
         			"过程-K-因指令长度错误，遥控线程丢弃%d bytes (共丢弃%lu bytes)数据.\n",
         			size,gTotal.sizeOfDiscardWhileInsLengthError);
 
-        	continue;
+        	//continue;
+        	return 0;
         }
 #else
 #ifdef _INSERTZLMANUALLY
@@ -286,7 +295,8 @@ void* main_loop_of_YK(void *arg){
             gTotal.packageDiscardForSBIDError ++;
             prgPrint(LOGFILE,"PRG-K-YK discard 1 ZL (total %lu ZL) because of error SBID.\n","过程-K-因设备ID错误，遥控线程丢弃1条指令 (共丢弃%lu条指令).\n",gTotal.packageDiscardForSBIDError);
 
-        	continue;
+        	//continue;
+            return 0;
         }
 
         //printf("YYID=%d, ZZLX=%d,ZLBH=%d\n",pzlFrameHeader->yyid,pzlFrameHeader->zllx,pzlFrameHeader->zlbh);
@@ -308,7 +318,8 @@ void* main_loop_of_YK(void *arg){
             gTotal.packageHeartBeat ++;
             prgPrint(LOGFILE,"PRG-K-YK recv 1 heart beat ZL (total %lu ZL) .\n","过程-K-遥控线程取得1条heart beat指令 (共取得%lu条heart beat指令).\n",gTotal.packageHeartBeat);
 
-        	continue;
+        	//continue;
+            return 0;
         }
 
 
@@ -365,7 +376,8 @@ void* main_loop_of_YK(void *arg){
     	//如果数据库未连接就返回
     	if(gIntIsDbConnected != 1 || NULL == selfMysqlp ){
     		printYK("YK thread db  is not connected\n");
-    		continue;
+    		//continue;
+    		return 0;
     	}
 
 
@@ -417,7 +429,8 @@ void* main_loop_of_YK(void *arg){
             prgPrint(LOGFILE,"PRG-K-YK Fail to Insert 1 ZL (total %lu ZL) to DB.：\n","过程-K-遥控线程入库失败1条指令 (共%lu条指令).\n",gTotal.packageFailToInsertedToDB);
 
             printYK("YK thread insert db fail, dell with other ZL.\n");
-             continue;
+             //continue;
+            return 0;
          }
 
         printYK("+++++++++++++++++YK thread finish inserting ZL to db.\n");
@@ -494,7 +507,7 @@ void* main_loop_of_YK(void *arg){
 
 #endif //#ifdef _READZLAFTERINSERT
 
-
+/*
 
 #ifndef _LOOP
     	//调试，如果没有链接到服务器则暂不循环
@@ -502,14 +515,14 @@ void* main_loop_of_YK(void *arg){
 #else
     	//sleep(SLEEP_YK_LOOP);
 #endif
+*/
+
+
+//	}//while
 
 
 
-	}//while
-
-
-
-
+/*
 	int *pRet =  (int*)malloc(sizeof(int));
 	*pRet = 2;
 
@@ -518,7 +531,9 @@ void* main_loop_of_YK(void *arg){
 	pthread_exit((void*)pRet);
 	//pthread_exit((void*)(&retValOfThreadYK));
 	//return ( (void*)1);
+*/
 
+    	return 1;
 
 }
 
