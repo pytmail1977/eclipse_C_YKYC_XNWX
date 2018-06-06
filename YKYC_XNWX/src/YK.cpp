@@ -27,6 +27,8 @@ void* main_loop_of_YK(void *arg){
 
 	//取得本线程对应的数据库链接
 	mysql_t * selfMysqlp = NULL;
+	selfMysqlp = &gMysql[_YK];
+	/*
 	selfMysqlp = getMysql();
 	if (NULL == selfMysqlp){
 		errorPrint(LOGFILE,"ERR-K-Can not get mysql connection for this thread.\n","错误-K-无法取得本线程的mysql句柄.\n");
@@ -38,6 +40,7 @@ void* main_loop_of_YK(void *arg){
 
 		pthread_exit((void*)pRet);
 	}
+	*/
 
 	int lenOfIns;
     __uint8_t  zlData[ZL_MAX_LENGTH];
@@ -371,8 +374,8 @@ void* main_loop_of_YK(void *arg){
     	int count;
     	for(count=0;count<3;count++){
     		printYK("YK thread insert db begin.\n");
-    		//ret = self_mysql_query(selfMysqlp, strInsertZL.c_str());
-    		ret = self_mysql_real_query(selfMysqlp, strInsertZL.c_str(),strInsertZL.length());
+    		ret = self_mysql_query(selfMysqlp, strInsertZL.c_str());
+    		//ret = self_mysql_real_query(selfMysqlp, strInsertZL.c_str(),strInsertZL.length());
             if (!ret) {
             	printYK("YK thread insert db ok.\n");
             	break;

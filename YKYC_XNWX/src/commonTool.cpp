@@ -255,9 +255,9 @@ my_ulonglong STDCALL self_mysql_affected_rows(mysql_t* pMYsql){
 
 	my_ulonglong STDCALL ret;
 
-	worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
+	//worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
 	ret = mysql_affected_rows(&pMYsql->mysql);
-	worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
+	//worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
 
 	return ret;
 }
@@ -271,9 +271,9 @@ int		STDCALL self_mysql_query(mysql_t* pMYsql, const char *q){
 
 	int ret;
 	//printYK("self_mysql_query is going to lock mysql=%d, sql:%s.\n",pMYsql->mysql,q);
-	worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
+	//worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
 	ret = mysql_query(&pMYsql->mysql,q);
-	worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
+	//worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
 	//printYK("self_mysql_query unlocked mysq=%d. sql:%d\n",pMYsql->mysql,q);
 
 	return ret;
@@ -288,9 +288,9 @@ int		STDCALL self_mysql_real_query(mysql_t* pMYsql, const char *q,unsigned long 
 
 	int ret;
 
-	worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
+	//worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
 	ret = mysql_real_query(&pMYsql->mysql,q,length);
-	worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
+	//worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
 
 	return ret;
 
@@ -304,9 +304,9 @@ unsigned int STDCALL self_mysql_errno(mysql_t* pMYsql){
 	fucPrint(LOGFILE,"FUC++++++commonTool.cpp FUNC: self_mysql_errno is called.\n","调用++++++commonTool.cpp的函数: self_mysql_errno.\n");
 
 	unsigned int STDCALL ret;
-	worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
+	//worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
 	ret = mysql_errno(&pMYsql->mysql);
-	worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
+	//worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
 
 	return ret;
 
@@ -322,11 +322,11 @@ const char * STDCALL self_mysql_error(mysql_t* pMYsql){
 	const char * STDCALL ret;
 
 
-	worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
+	//worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
 
 	ret = mysql_error(&pMYsql->mysql);
 
-	worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
+	//worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
 
 
 	return ret;
@@ -341,9 +341,9 @@ MYSQL_RES *     STDCALL self_mysql_store_result(mysql_t* pMYsql){
 	fucPrint(LOGFILE,"FUC++++++commonTool.cpp FUNC: self_mysql_store_result is called.\n","调用++++++commonTool.cpp的函数: self_mysql_store_result.\n");
 
 	MYSQL_RES *     STDCALL ret;
-	worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
+	//worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
 	ret = mysql_store_result(&pMYsql->mysql);
-	worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
+	//worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
 
 	return ret;
 
@@ -358,9 +358,9 @@ my_ulonglong STDCALL self_mysql_num_rows(mysql_t* pMYsql,MYSQL_RES *res){
 
 	my_ulonglong STDCALL ret;
 
-	worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
+	//worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
 	ret = mysql_num_rows(res);
-	worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
+	//worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
 
 	return ret;
 
@@ -375,9 +375,9 @@ void		STDCALL self_mysql_free_result(mysql_t* pMYsql,MYSQL_RES *result){
 
 	//void		STDCALL ret;
 
-	worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
+	//worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
 	mysql_free_result(result);
-	worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
+	//worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
 
 	//return ret;
 }
@@ -392,9 +392,9 @@ MYSQL_ROW	STDCALL self_mysql_fetch_row(mysql_t* pMYsql,MYSQL_RES *result){
 
 	MYSQL_ROW ret;
 
-	worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
+	//worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
 	ret = mysql_fetch_row(result);
-	worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
+	//worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
 
 	return ret;
 }
@@ -1334,6 +1334,7 @@ int getLengthOfData(__uint8_t b1, __uint8_t b2, __uint8_t b3, __uint8_t b4) {
 }
 
 //根据调用此函数所在的线程，返回适当的数据库链接
+/*
 mysql_t * getMysql(void){
 	GET_FUNCSEQ
 	fucPrint(LOGFILE,"FUC++++++commonTool.c FUNC: getMysql is called.\n","调用++++++commonTool.c的函数: getMysql.\n");
@@ -1349,6 +1350,7 @@ mysql_t * getMysql(void){
 		return NULL;
 	}
 }
+*/
 
 int myfprintf (FILE *__restrict __stream,
 		    __const char *__restrict __format1,__const char *__restrict __format2, ...){

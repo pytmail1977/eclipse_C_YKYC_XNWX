@@ -13,7 +13,7 @@
 //////////////////////
 
 //如果定义，则表示在mac系统上编译，否则在ubuntu系统上编译
-//#define _BUILD_ON_MAC
+#define _BUILD_ON_MAC
 
 //如果定义，则在lenovo上运行，设置网络接口为eth4或者wlan0
 //#define _RUN_ON_LENOVO
@@ -24,9 +24,11 @@
 //当_PRINT_DETAIL打开时，输出YK线程的细节。
 #define _PRINT_DETAIL
 
-
-
 #define _USE_LOCK_SAMPLE
+
+//如果定义，则根据需要输出各种消息、错误和debug信息，否则一概不输出
+#define _DEBUGPRINT
+
 //如果定义，则连接.31作为网络服务器
 //#define _CONNECT_TO_31_SERVER
 
@@ -48,8 +50,7 @@
 //遥控线程在插入一条指令后立即读出显示
 //#define _READZLAFTERINSERT
 
-//如果定义，则根据需要输出各种消息、错误和debug信息，否则一概不输出
-//#define _DEBUGPRINT
+
 
 //如果定义，在程序启动时会将所有未读指令置为忽略
 #define _IGNORUNREADZLWHENRESTART

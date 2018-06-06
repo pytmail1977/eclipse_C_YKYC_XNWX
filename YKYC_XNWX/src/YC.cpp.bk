@@ -8,7 +8,7 @@
 
 
 
-#include "YC.h"
+#include "YC.h.bk"
 
 //临时定义个变量，用于决定什么时候向遥测数据包结构写入什么测试数据
 int intToWrite;

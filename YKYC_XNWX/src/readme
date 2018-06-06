@@ -2247,3 +2247,31 @@ int  wormhole_mutex_trylock(worm_mutex_t *pWormMutex){
 7.发现在self_mysql_*系列自定义函数中，不是所有函数都在访问数据库连接时做了加锁操作，		
 	函数self_mysql_errno（）没有加锁
 	将其改为加锁
+	
+	
+2018-6-7-1
+1.修改YK.cpp，把selfMysqlp直接指向&gMysql[_YK]
+
+	selfMysqlp = &gMysql[_YK];
+	/*
+	selfMysqlp = getMysql();
+	if (NULL == selfMysqlp){
+		errorPrint(LOGFILE,"ERR-K-Can not get mysql connection for this thread.\n","错误-K-无法取得本线程的mysql句柄.\n");
+
+		int *pRet =  (int*)malloc(sizeof(int));
+		*pRet = -1;
+
+		msgPrint(LOGFILE,"MSG-K-main_loop_of_YK is going to close.\n","消息-K-遥控线程即将关闭.\n");
+
+		pthread_exit((void*)pRet);
+	}
+	*/
+
+2.将YC.cpp的内容合并至YKYC.cpp;将YC.h的内容合并至YKYC.h;将YKYC.h中对YC.h的引用去掉	
+3.在YKYC.cpp中
+	将所有
+		selfMysqlp = getMysql();
+	替换为
+		selfMysqlp = &gMysql[_YKYC];
+4、修改commonTool.h和commonTool.cpp中的函数mysql_t * getMysql(void);取消
+5、将commonTool.cpp中所有的self_mysql_*（）函数中，取消加锁操作

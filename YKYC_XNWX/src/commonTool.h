@@ -150,10 +150,8 @@ void		STDCALL self_mysql_free_result(mysql_t *pMYsql,MYSQL_RES *result);
 MYSQL_ROW	STDCALL self_mysql_fetch_row(mysql_t *pMYsql,MYSQL_RES *result);
 
 
-
-
 //根据调用此函数所在的线程，返回适当的数据库链接
-mysql_t * getMysql(void);
+//mysql_t * getMysql(void);
 
 //调整中英文输出使用
 int myfprintf (FILE *__restrict __stream,
