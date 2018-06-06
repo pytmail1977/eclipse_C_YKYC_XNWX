@@ -301,7 +301,7 @@
 #define DEAL_WITH_ZL_INTERVAL (5*(NUM_OF_BASE_TIMER_TICK_FOR_A_SECOND)) //5s执行一次指令
 
 //socket读取定时器超时时间
-#define SOCKET_RECV_INTERVAL (2*(NUM_OF_BASE_TIMER_TICK_FOR_A_SECOND)) //2s读取一次socket数据
+#define SOCKET_RECV_INTERVAL (1*(NUM_OF_BASE_TIMER_TICK_FOR_A_SECOND)) //2s读取一次socket数据
 
 //输出统计信息超时时间
 #define PRINT_TOTAL_INTERVAL (10*(NUM_OF_BASE_TIMER_TICK_FOR_A_SECOND)) //20s输出一次统计信息

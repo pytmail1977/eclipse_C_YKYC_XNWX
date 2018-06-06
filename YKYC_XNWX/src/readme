@@ -2080,27 +2080,22 @@ DELIMITER ;
 worm_mutex_unlock(&buffer->mutex); //2018-6-3不再使用funcSeq //worm_mutex_unlock(&buffer->mutex,funcSeq);		
 
 2018-6-5
-1.取消多余的GET_FUNCSEQ定义
-	 	#define GET_FUNCSEQ funcSeq_t funcSeq = getRandFuncSeq();
-	改为
-		//#define GET_FUNCSEQ funcSeq_t funcSeq = getRandFuncSeq();
+1. #define GET_FUNCSEQ funcSeq_t funcSeq = getRandFuncSeq();
+->
+	//#define GET_FUNCSEQ funcSeq_t funcSeq = getRandFuncSeq();
 	
-2.将lenovo连接mac时的网络接口
-	由
-		#define IF_NAME "eth4"
-	改为
-		#define IF_NAME "wlan5"
-3.不再开启遥测子线程
-		#define _STARTYCTHREAD
-	改为
-		//#define _STARTYCTHREAD
-4.在处理指令的周期，发送原来在遥测线程中发出的按需遥测
-	将
+2.#define IF_NAME "eth4"
+->
+#define IF_NAME "wlan5"
+3.#define _STARTYCTHREAD
+->
+//#define _STARTYCTHREAD
+4.
 			if(1 == recvZl()){
 				//DEBUG_STOP
 				;
 			}
-	改为
+->
 			if(1 == recvZl()){
 				//DEBUG_STOP
 				;
@@ -2114,45 +2109,141 @@ worm_mutex_unlock(&buffer->mutex); //2018-6-3不再使用funcSeq //worm_mutex_un
 					sendAxSsycOnXNWX();
 			#endif
 			#endif
-5.因为多次测试发现printTJXJ()函数调用lengthOfBuffer（）时会导致所有进程（不管时包括YC时的三个进程，还是取消雅策进程后的两个进程）停在试图加锁的处理中。所以索性取消
+5.
 			printTJXJ();
-	改为
+->
 			//printTJXJ();
 			
-6.将解锁函数中pWormMutex->pt = 0;的执行位置放到调用pthread_mutex_unlock（）之后
-	将
-		if( (selfPt == pWormMutex->pt) ){
-			pWormMutex->pt = 0;
-			//pWormMutex->funcSeq = -1;
-			pthread_mutex_unlock(&pWormMutex->mutex);
-	改为
-		if( (selfPt == pWormMutex->pt) ){
-			//pWormMutex->funcSeq = -1;
-			pthread_mutex_unlock(&pWormMutex->mutex);
-			pWormMutex->pt = 0;
-7.定义一个编译开关“_USE_LOCK_SAMPLE”，控制使用简单的加锁和解锁动作（不记录是哪个线程锁住的对象）
-	#ifdef _USE_LOCK_SAMPLE
-	void wormhole_mutex_lock(worm_mutex_t *pWormMutex){
-	
-		if(!pWormMutex)
-			return;
-		pthread_mutex_lock(&pWormMutex->mutex);
-	}
-	
-	void wormhole_mutex_unlock(worm_mutex_t *pWormMutex){
-		if(!pWormMutex)
-			return;
-	
+6.
+	if( (selfPt == pWormMutex->pt) ){
+		pWormMutex->pt = 0;
+		//pWormMutex->funcSeq = -1;
 		pthread_mutex_unlock(&pWormMutex->mutex);
-	
-	}
-	int  wormhole_mutex_trylock(worm_mutex_t *pWormMutex){
-		if(!pWormMutex)
-			return -1;
-		int ret;
-		ret = pthread_mutex_trylock(&pWormMutex->mutex);
-		return ret;
-	}
+->
+	if( (selfPt == pWormMutex->pt) ){
+		//pWormMutex->funcSeq = -1;
+		pthread_mutex_unlock(&pWormMutex->mutex);
+		pWormMutex->pt = 0;
+7.
+#ifdef _USE_LOCK_SAMPLE
+void wormhole_mutex_lock(worm_mutex_t *pWormMutex){
+
+	if(!pWormMutex)
+		return;
+	pthread_mutex_lock(&pWormMutex->mutex);
+}
+
+void wormhole_mutex_unlock(worm_mutex_t *pWormMutex){
+	if(!pWormMutex)
+		return;
+
+	pthread_mutex_unlock(&pWormMutex->mutex);
+
+}
+int  wormhole_mutex_trylock(worm_mutex_t *pWormMutex){
+	if(!pWormMutex)
+		return -1;
+	int ret;
+	ret = pthread_mutex_trylock(&pWormMutex->mutex);
+	return ret;
+}
+#else
+.......
+#endif
+
+2018-6-6
+1.修改更新应用状态函数int updataYYZT(int gYyYxzt)，设置一个编译开关_SXXT_ANYWAY，此开关打开时，不看遥控线程是否活跃，积极刷新心跳
+	将
+		if(gIntIsYKThreadLive)
+			gYySxxt++;
+	改为
+		#ifdef _SXXT_ANYWAY
+			gYySxxt++;
+		#else 
+			if(gIntIsYKThreadLive)
+				gYySxxt++;
+			else{
+				prePrint();printf("YK thread is not active, Sxxt will not increased.\n");
+			}
+		#endif	
+	将
+	    if (!ret) {
+	    	prgPrint(LOGFILE,"PRG---Update table %s, affact %d rows.\n", "过程---更新应用状态表%s %llu 行.\n", table_name_JKGL_YYZT, self_mysql_affected_rows(selfMysqlp));
+	改为	
+	    if (!ret) {
+	    	prgPrint(LOGFILE,"PRG---Update table %s, affact %d rows.\n", "过程---更新应用状态表%s %llu 行.\n", table_name_JKGL_YYZT, self_mysql_affected_rows(selfMysqlp));
+	    	prePrint();printf("Update YYZT successfully.\n");
+    	
+2.修改compiler.h，增加两个编译开关。当_PRINT_DETAIL打开时，输出YK线程的细节。
+	#define _SXXT_ANYWAY
+	#define _PRINT_DETAIL
+3.修改debug.h，定义一个遥控线程的临时输出宏
+	//////////////////////////
+	//定义一个遥控线程的临时输出宏
+	/////////////////////////
+	#ifdef _ PRINT_DETAIL
+	#define printYK infoPrint printf
 	#else
-	.......
+	#define printYK
 	#endif
+	
+4.修改YK.cpp
+	加入以下调试输出
+		//printYK("YK thread begain while.\n");
+		//printYK("YK thread not find Sync Header.\n");
+		printYK("YK thread wait for the length part of  ZL.\n");
+		printYK("YK thread wait for the compliment ZL.\n");
+        printYK("------------------------YK thread got a  ZL. \n");
+        printYK("Begin call lengthOfBuffer.\n");
+        printYK("YK thread insert db begin.\n");
+        printYK("YK thread insert db ok.\n");
+        printYK("YK thread ERR ZL length lenOfIns = %d. \n",lenOfIns);
+		printYK("YK thread return from the calling of  lengthOfBuffer.\n");
+		printYK("YK thread finish counting.\n");
+		printYK("YK thread another call of lengthOfBuffer.\n");	
+		printYK("YK thread begin to insert ZL to db.\n");
+		printYK("+++++++++++++++++YK thread finish inserting ZL to db.\n");
+		printYK("YK thread ZL SBID wrong\n");
+		printYK("YK thread got a heart beat ZL\n");
+		printYK("YK thread Escaped string of  ZL_NR\n");
+		printYK("YK thread ZL SQL:%s\n", strInsertZL.c_str());
+		printYK("YK thread insert db fail, try again.\n");
+		printYK("YK thread insert db fail, dell with other ZL.\n");
+	不再在遥控线程主循环中sleep，修改	
+		sleep(SLEEP_YK_LOOP);
+	为
+		//sleep(SLEEP_YK_LOOP);
+	在插入指令表时尝试采用self_mysql_real_query，替代self_mysql_query（没有用， 最终仍然会调用mysql_real_query，并在联合应用4测试时卡住）
+    将
+    	//ret = self_mysql_query(selfMysqlp, strInsertZL.c_str());
+    改为
+   		ret = self_mysql_real_query(selfMysqlp, strInsertZL.c_str(),strInsertZL.length());		
+	在插入指令表前，做一个稳妥的判断，不但判断gIntIsDbConnected，还检查selfMysqlp是否为NULL
+   	将
+   		//指令入库
+    	//如果数据库未连接就返回
+    	if(gIntIsDbConnected != 1 ){
+    		printYK("YK thread db  is not connected\n");
+    		continue;
+    	}
+ 	改为
+    	//指令入库
+    	//如果数据库未连接就返回
+    	if(gIntIsDbConnected != 1 || NULL == selfMysqlp ){
+    		printYK("YK thread db  is not connected\n");
+    		continue;
+    	}
+5.修改YCYK.cpp，增加调试输出
+	    if(0!=length){
+	    	printYK("---------------------Read %d byte from socket! ",length);
+	    }
+
+6.修改const.h
+	将收socket指令数据的周期从2秒改为1秒
+	将
+		#define SOCKET_RECV_INTERVAL (2*(NUM_OF_BASE_TIMER_TICK_FOR_A_SECOND)) //2s读取一次socket数据
+	改为
+		#define SOCKET_RECV_INTERVAL (1*(NUM_OF_BASE_TIMER_TICK_FOR_A_SECOND)) //2s读取一次socket数据
+7.发现在self_mysql_*系列自定义函数中，不是所有函数都在访问数据库连接时做了加锁操作，		
+	函数self_mysql_errno（）没有加锁
+	将其改为加锁

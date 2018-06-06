@@ -112,4 +112,15 @@
 #define worm_mutex_trylock //wormhole_mutex_trylock
 #endif
 
+
+//////////////////////////
+//定义一个遥控线程的临时输出宏
+/////////////////////////
+#ifdef _PRINT_DETAIL
+#define printYK infoPrint printf
+#else
+#define printYK
+#endif
+
+
 #endif /* DEBUG_H_ */

@@ -600,9 +600,15 @@ int updataYYZT(int gYyYxzt){
 		gYySxxt++;
 		*/
 
+#ifdef _SXXT_ANYWAY
+	gYySxxt++;
+#else
 	if(gIntIsYKThreadLive)
 		gYySxxt++;
-
+	else{
+		prePrint();printf("YK thread is not active, Sxxt will not increased.\n");
+	}
+#endif
 
 	//如果数据库未连接就返回
 	if(gIntIsDbConnected!=1)
@@ -629,7 +635,7 @@ int updataYYZT(int gYyYxzt){
 
     if (!ret) {
     	prgPrint(LOGFILE,"PRG---Update table %s, affact %d rows.\n", "过程---更新应用状态表%s %llu 行.\n", table_name_JKGL_YYZT, self_mysql_affected_rows(selfMysqlp));
-
+    	prePrint();printf("Update YYZT successfully.\n");
      } else {
          errorPrint(LOGFILE, "ERR---Update table %s error %d: %s.\n","错误---更新应用状态表%s失败（错误编号：%d，%s）.\n", table_name_JKGL_YYZT, self_mysql_errno(selfMysqlp), self_mysql_error(selfMysqlp));
          return -2;
@@ -833,6 +839,7 @@ void onMainTimer(int)
 		    //更新自身状态表
 		    updateSelfState(false);
 		    //更新监控管理服务应用状态表
+
 		    updataYYZT(RET_RUNNING);
 		}
 #endif
@@ -1856,6 +1863,10 @@ int readZlfromSocket(void){
 		length = recv(gNetSocket.client_sockfd,socketReadBuffer,SOCKET_READ_LENGTH,MSG_DONTWAIT);
 	    dataPrint(LOGFILE,"DAT---Main loop recv %d byte zl data from socket：.\n", "数据---从服务器接收到%d byte指令数据.\n", length);
 
+	    if(0!=length){
+	    	printYK("---------------------Read %d byte from socket! ",length);
+	    }
+
 
 
 	    //输出收到的socket数据
@@ -2103,7 +2114,7 @@ void zlReconnect(void){
 		errorPrint(LOGFILE,"ERR---Can't reconnect ZL server:%d.\n","错误---重新链接服务器失败（错误编号：%d）.\n", errno);
 		//return -2;//-2表示无法链接到指令转发服务
 	}else{
-		printf("错误顺序！");
+		//printf("错误顺序！");
 		msgPrint(LOGFILE,"MSG---Reconnect ZL server success.\n","消息---重新链接服务器成功.\n");
 		gZLConnectionTimeOut = MAX_ZL_CONNECT_TIMEOUT;
 	}

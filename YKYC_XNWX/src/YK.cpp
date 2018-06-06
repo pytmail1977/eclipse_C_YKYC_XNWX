@@ -47,6 +47,8 @@ void* main_loop_of_YK(void *arg){
 
 	while(gIntIsRun){
 
+		//printYK("YK thread begain while.\n");
+
     	//遥控线程保活计数器+1
     	gIntNewStatYKThread++;
 
@@ -65,7 +67,7 @@ void* main_loop_of_YK(void *arg){
 		//定位同步头
 		int indexOfSyncHeader = findBuffer(&gSocketBuffer,gSYNC_HEADER,LEN_OF_TCP_SYNC);
         if (indexOfSyncHeader<0){
-
+        	//printYK("YK thread not find Sync Header.\n");
         	continue;
         }
 
@@ -83,6 +85,7 @@ void* main_loop_of_YK(void *arg){
         //如果头中长度部分还没来全就循环等待
         if(-1 == retOfRead){
         	prgPrint(LOGFILE,"PRG-K-Buffer is not ready for read out all TCP Head long = %d.\n","过程-K-数据未到全，暂无法按TCP应用头指定的长度%d读取.\n",LEN_OF_TCP_LENGTH);
+        	printYK("YK thread wait for the length part of  ZL.\n");
         	continue;
         }
 
@@ -100,6 +103,7 @@ void* main_loop_of_YK(void *arg){
         	 //如果没有读出lenOfIns这么多（后续的内容还没有来全）
         	 if(-1 == retOfRead){
         		 prgPrint(LOGFILE,"PRG-K-Buffer is not ready for read out all Ins long = %d.\n","过程-K-数据未到全，暂无法按指定指令长度%d读出.\n",lenOfIns);
+        		 printYK("YK thread wait for the compliment ZL.\n");
         		 continue;
         	 }
 
@@ -130,8 +134,10 @@ void* main_loop_of_YK(void *arg){
 
 
              //取pop之前的长度
+             printYK("------------------------YK thread got a  ZL. \n");
+             printYK("Begin call lengthOfBuffer.\n");
              int length1 = lengthOfBuffer(&gSocketBuffer);
-
+             printYK("YK thread return from the calling of  lengthOfBuffer.\n");
 
              //令人疑惑的注解/////////////////////////////////////////////////
              //——//以下为错误代码，错误原因是如果值indexOfSyncHeader+LEN_OF_TCP_HEAD+lenOfIns超过BUFFER_SIZE，它就并不是要清除的缓冲的长度，
@@ -151,6 +157,7 @@ void* main_loop_of_YK(void *arg){
              //////////////////////////////////////////
              //字节统计
              //////////////////////////////////////////
+
              gTotal.sizeOfPopBuffer +=  (indexOfSyncHeader+LEN_OF_TCP_HEAD+lenOfIns);
 
              if(indexOfSyncHeader>0){
@@ -171,6 +178,7 @@ void* main_loop_of_YK(void *arg){
             		 "过程-K-遥控线程解析出1条指令 (共解析出%lu条指令).\n",
             		 gTotal.packageResolved);
 
+             printYK("YK thread finish counting.\n");
 
              //已经前移，此处不要了
              /*
@@ -180,7 +188,7 @@ void* main_loop_of_YK(void *arg){
              }
              */
 
-
+             printYK("YK thread another call of lengthOfBuffer.\n");
              int length2 = lengthOfBuffer(&gSocketBuffer);
              dataPrint(LOGFILE,"DAT-K-Pop %d bytes from gSocketBuffer.\n","数据-K-遥控线程弹出%d bytes数据.\n",length1-length2);
 
@@ -192,6 +200,7 @@ void* main_loop_of_YK(void *arg){
 
 
         }else{
+        	printYK("YK thread ERR ZL length lenOfIns = %d. \n",lenOfIns);
         	int length = lengthOfBuffer(&gSocketBuffer);
         	int ret =popBuffer(&gSocketBuffer,tmpData,length);
 
@@ -257,6 +266,8 @@ void* main_loop_of_YK(void *arg){
         //指令入库
         /////////////////
 
+        printYK("YK thread begin to insert ZL to db.\n");
+
         //解析指令////////////////////////////////
         struct_ZLFrameHeader_t *pzlFrameHeader;
     	pzlFrameHeader = (struct_ZLFrameHeader_t*)zlData;
@@ -266,8 +277,7 @@ void* main_loop_of_YK(void *arg){
         	prgPrint(LOGFILE,"PRG-K-Get a Zl with error SBID %d\n","过程-K-遥控线程取得的指令设备ID错误：%d\n",pzlFrameHeader->sbid);
         	//DEBUG_STOP
 
-        	/////////////////////////////////////////
-        	//字数统计
+        	printYK("YK thread ZL SBID wrong\n");
         	/////////////////////////////////////////
             //统计解析处的指令数
             gTotal.packageDiscardForSBIDError ++;
@@ -285,7 +295,7 @@ void* main_loop_of_YK(void *arg){
         if (ZLLX_XT == pzlFrameHeader->zllx){
         	prgPrint(LOGFILE,"PRG-K-Get a heart beat Zl\n","过程-K-遥控线程取得heart beat指令\n");
         	//DEBUG_STOP
-
+        	printYK("YK thread got a heart beat ZL\n");
         	gZLConnectionTimeOut = MAX_ZL_CONNECT_TIMEOUT;
 
         	/////////////////////////////////////////
@@ -322,7 +332,7 @@ void* main_loop_of_YK(void *arg){
 
         dataPrint(LOGFILE,"DAT-K-ZLNR to Insert is:%s\n","数据-K-待入库的指令内容：%s.\n",zlnr);
 
-
+        printYK("YK thread Escaped string of  ZL_NR\n");
 
         //构造sql
     	string strZLNR((char *)to);
@@ -346,20 +356,28 @@ void* main_loop_of_YK(void *arg){
 
 
     	sqlPrint(LOGFILE,"SQL-K-Insert table %s: %s\n","SQL-K-插入%s表SQL: %s\n",table_name_YK_ZL, strInsertZL.c_str());
+    	printYK("YK thread ZL SQL:%s\n", strInsertZL.c_str());
+
     	//指令入库
     	//如果数据库未连接就返回
-    	if(gIntIsDbConnected!=1)
+    	if(gIntIsDbConnected != 1 || NULL == selfMysqlp ){
+    		printYK("YK thread db  is not connected\n");
     		continue;
+    	}
 
 
     	int ret;
     	//尝试三次操作数据库，如果都失败，就认了。
     	int count;
     	for(count=0;count<3;count++){
-    		ret = self_mysql_query(selfMysqlp, strInsertZL.c_str());
+    		printYK("YK thread insert db begin.\n");
+    		//ret = self_mysql_query(selfMysqlp, strInsertZL.c_str());
+    		ret = self_mysql_real_query(selfMysqlp, strInsertZL.c_str(),strInsertZL.length());
             if (!ret) {
+            	printYK("YK thread insert db ok.\n");
             	break;
             }else{
+            	printYK("YK thread insert db try again.\n");
             	sleep(1);
             }
     	}
@@ -367,6 +385,7 @@ void* main_loop_of_YK(void *arg){
 
 
         if (!ret) {
+
              prgPrint(LOGFILE,"PRG-K-Insert into %s, affact %d rows.\n","过程-K-插入%s表 ，影响%d行.\n",table_name_YK_ZL,
                      self_mysql_affected_rows(selfMysqlp));
              //z指令计数增1
@@ -394,10 +413,11 @@ void* main_loop_of_YK(void *arg){
             gTotal.packageFailToInsertedToDB ++;
             prgPrint(LOGFILE,"PRG-K-YK Fail to Insert 1 ZL (total %lu ZL) to DB.：\n","过程-K-遥控线程入库失败1条指令 (共%lu条指令).\n",gTotal.packageFailToInsertedToDB);
 
+            printYK("YK thread insert db fail, dell with other ZL.\n");
              continue;
          }
 
-
+        printYK("+++++++++++++++++YK thread finish inserting ZL to db.\n");
         /////////////////
         //Debug指令读取显示插入的指令
         /////////////////
@@ -477,7 +497,7 @@ void* main_loop_of_YK(void *arg){
     	//调试，如果没有链接到服务器则暂不循环
     	break;
 #else
-    	sleep(SLEEP_YK_LOOP);
+    	//sleep(SLEEP_YK_LOOP);
 #endif
 
 

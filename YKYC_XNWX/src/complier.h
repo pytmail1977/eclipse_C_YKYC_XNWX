@@ -18,6 +18,13 @@
 //如果定义，则在lenovo上运行，设置网络接口为eth4或者wlan0
 //#define _RUN_ON_LENOVO
 
+//当_SXXT_ANYWAY打开时，积极刷新心跳，不考虑遥控线程是否活跃
+#define _SXXT_ANYWAY
+
+//当_PRINT_DETAIL打开时，输出YK线程的细节。
+#define _PRINT_DETAIL
+
+
 
 #define _USE_LOCK_SAMPLE
 //如果定义，则连接.31作为网络服务器
@@ -121,7 +128,6 @@
 
 //如果定义则是运行在虚拟卫星上
 //#define _RUN_ON_XNWX
-
 #ifndef _RUN_ON_XNWX
 //如果定义，则for all node
 #define _GET_IP_SELF

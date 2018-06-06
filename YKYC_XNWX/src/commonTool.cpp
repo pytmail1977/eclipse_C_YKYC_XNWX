@@ -270,10 +270,11 @@ int		STDCALL self_mysql_query(mysql_t* pMYsql, const char *q){
 	fucPrint(LOGFILE,"FUC++++++commonTool.cpp FUNC: self_mysql_query is called.\n","调用++++++commonTool.cpp的函数: self_mysql_query.\n");
 
 	int ret;
-
+	//printYK("self_mysql_query is going to lock mysql=%d, sql:%s.\n",pMYsql->mysql,q);
 	worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
 	ret = mysql_query(&pMYsql->mysql,q);
 	worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
+	//printYK("self_mysql_query unlocked mysq=%d. sql:%d\n",pMYsql->mysql,q);
 
 	return ret;
 }
@@ -303,9 +304,9 @@ unsigned int STDCALL self_mysql_errno(mysql_t* pMYsql){
 	fucPrint(LOGFILE,"FUC++++++commonTool.cpp FUNC: self_mysql_errno is called.\n","调用++++++commonTool.cpp的函数: self_mysql_errno.\n");
 
 	unsigned int STDCALL ret;
-	//worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
+	worm_mutex_lock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_lock(&pMYsql->mutex,funcSeq);
 	ret = mysql_errno(&pMYsql->mysql);
-	//worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
+	worm_mutex_unlock(&pMYsql->mutex); //2018-6-3 不再使用funcSeq //worm_mutex_unlock(&pMYsql->mutex,funcSeq);
 
 	return ret;
 

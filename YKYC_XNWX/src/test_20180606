@@ -1,0 +1,92 @@
+test_20180606
+ Created on: 2018年6月6日
+     Author: pyt64
+(2018-06-06, 16:28:44) ---------------------Read 30 byte from socket! (2018-06-06, 16:28:44) ------------------------YK thread got a  ZL. 
+(2018-06-06, 16:28:44) (2018-06-06, 16:28:44) Begin call lengthOfBuffer.
+self_mysql_query is going to lock mysql=3238520, sql:.
+(2018-06-06, 16:28:44) YK thread return from the calling of  lengthOfBuffer.
+(2018-06-06, 16:28:44) YK thread finish counting.
+(2018-06-06, 16:28:44) YK thread another call of lengthOfBuffer.
+(2018-06-06, 16:28:44) YK thread begin to insert ZL to db.
+(2018-06-06, 16:28:44) YK thread Escaped string of  ZL_NR
+(2018-06-06, 16:28:44) YK thread ZL SQL:insert into GJFW_YK_ZL(YY_ID,ZL_LX,ZL_BH,ZL_JSSJ,ZL_ZXJG,ZL_NR) values(2,2,5,'2018-6-6 16:28:44',0,'00\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0')
+(2018-06-06, 16:28:44) YK thread insert db begin.
+(2018-06-06, 16:28:44) self_mysql_query is going to lock mysql=3239520, sql:.
+(2018-06-06, 16:28:44) self_mysql_query unlocked mysq=3238520. sql:3365528
+(2018-06-06, 16:28:44) self_mysql_query is going to lock mysql=3238520, sql:.
+(2018-06-06, 16:28:44) self_mysql_query unlocked mysq=3239520. sql:3464256
+(2018-06-06, 16:28:44) YK thread insert db ok.
+(2018-06-06, 16:28:44) +++++++++++++++++YK thread finish inserting ZL to db.
+(2018-06-06, 16:28:44) self_mysql_query unlocked mysq=3238520. sql:3365528
+(2018-06-06, 16:28:44) self_mysql_query is going to lock mysql=3238520, sql:.
+(2018-06-06, 16:28:44) self_mysql_query unlocked mysq=3238520. sql:3365528
+(2018-06-06, 16:28:44) self_mysql_query is going to lock mysql=3238520, sql:.
+(2018-06-06, 16:28:44) self_mysql_query unlocked mysq=3238520. sql:3365528
+gZLConnectionTimeOut=14
+
+(2018-06-06, 16:28:45) ---------------------Read -1 byte from socket! (2018-06-06, 16:28:45) self_mysql_query is going to lock mysql=3238520, sql:.
+(2018-06-06, 16:28:45) self_mysql_query unlocked mysq=3238520. sql:3365528
+(2018-06-06, 16:28:45) self_mysql_query is going to lock mysql=3238520, sql:.
+(2018-06-06, 16:28:45) self_mysql_query unlocked mysq=3238520. sql:3365528
+(2018-06-06, 16:28:45) self_mysql_query is going to lock mysql=3238520, sql:.
+(2018-06-06, 16:28:45) self_mysql_query unlocked mysq=3238520. sql:3365528
+(2018-06-06, 16:28:45) self_mysql_query is going to lock mysql=3238520, sql:.
+(2018-06-06, 16:28:45) self_mysql_query unlocked mysq=3238520. sql:3365528
+gZLConnectionTimeOut=13
+
+(2018-06-06, 16:28:46) ---------------------Read 30 byte from socket! (2018-06-06, 16:28:46) ------------------------YK thread got a  ZL. 
+(2018-06-06, 16:28:46) Begin call lengthOfBuffer.
+(2018-06-06, 16:28:46) YK thread return from the calling of  lengthOfBuffer.
+(2018-06-06, 16:28:46) YK thread finish counting.
+(2018-06-06, 16:28:46) YK thread another call of lengthOfBuffer.
+(2018-06-06, 16:28:46) YK thread begin to insert ZL to db.
+(2018-06-06, 16:28:46) YK thread Escaped string of  ZL_NR
+(2018-06-06, 16:28:46) self_mysql_query is going to lock mysql=3238520, sql:.
+(2018-06-06, 16:28:46) YK thread ZL SQL:insert into GJFW_YK_ZL(YY_ID,ZL_LX,ZL_BH,ZL_JSSJ,ZL_ZXJG,ZL_NR) values(2,2,5,'2018-6-6 16:28:46',0,'00\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0')
+(2018-06-06, 16:28:46) YK thread insert db begin.
+(2018-06-06, 16:28:46) self_mysql_query is going to lock mysql=3239520, sql:.
+(2018-06-06, 16:28:46) self_mysql_query unlocked mysq=3239520. sql:3464256
+(2018-06-06, 16:28:46) YK thread insert db ok.
+(2018-06-06, 16:28:46) +++++++++++++++++YK thread finish inserting ZL to db.
+(2018-06-06, 16:28:46) self_mysql_query unlocked mysq=3238520. sql:3365528
+(2018-06-06, 16:28:46) self_mysql_query is going to lock mysql=3238520, sql:.
+(2018-06-06, 16:28:46) self_mysql_query unlocked mysq=3238520. sql:3365528
+(2018-06-06, 16:28:46) self_mysql_query is going to lock mysql=3238520, sql:.
+(2018-06-06, 16:28:46) self_mysql_query unlocked mysq=3238520. sql:3365528
+(2018-06-06, 16:28:46) self_mysql_query is going to lock mysql=3238520, sql:.
+(2018-06-06, 16:28:46) self_mysql_query unlocked mysq=3238520. sql:3365528
+gZLConnectionTimeOut=14
+
+(2018-06-06, 16:28:47) MSG---sendZqSsyc success.
+(2018-06-06, 16:28:47) ---------------------Read 26 byte from socket! (2018-06-06, 16:28:47) self_mysql_query is going to lock mysql=3238520, sql:.
+(2018-06-06, 16:28:47) ------------------------YK thread got a  ZL. 
+(2018-06-06, 16:28:47) Begin call lengthOfBuffer.
+(2018-06-06, 16:28:47) YK thread return from the calling of  lengthOfBuffer.
+(2018-06-06, 16:28:47) YK thread finish counting.
+(2018-06-06, 16:28:47) YK thread another call of lengthOfBuffer.
+(2018-06-06, 16:28:47) YK thread begin to insert ZL to db.
+(2018-06-06, 16:28:47) YK thread got a heart beat ZL
+(2018-06-06, 16:28:47) self_mysql_query is going to lock mysql=3239520, sql:.
+(2018-06-06, 16:28:47) self_mysql_query unlocked mysq=3239520. sql:3464256
+(2018-06-06, 16:28:47) self_mysql_query is going to lock mysql=3239520, sql:.
+(2018-06-06, 16:28:47) self_mysql_query unlocked mysq=3239520. sql:3464256
+(2018-06-06, 16:28:47) self_mysql_query is going to lock mysql=3239520, sql:.
+(2018-06-06, 16:28:47) self_mysql_query unlocked mysq=3239520. sql:3464256
+(2018-06-06, 16:28:47) self_mysql_query is going to lock mysql=3239520, sql:.
+(2018-06-06, 16:28:47) self_mysql_query unlocked mysq=3239520. sql:3464256
+gZLConnectionTimeOut=14
+
+(2018-06-06, 16:28:47) self_mysql_query is going to lock mysql=3239520, sql:.
+(2018-06-06, 16:28:51) self_mysql_query unlocked mysq=3238520. sql:3365528
+(2018-06-06, 16:28:51) self_mysql_query is going to lock mysql=3238520, sql:.
+(2018-06-06, 16:28:51) self_mysql_query unlocked mysq=3239520. sql:3464256
+(2018-06-06, 16:28:51) ---------------------Read 60 byte from socket! (2018-06-06, 16:28:51) self_mysql_query unlocked mysq=3238520. sql:3365528
+(2018-06-06, 16:28:51) self_mysql_query is going to lock mysql=3238520, sql:.
+(2018-06-06, 16:28:51) self_mysql_query unlocked mysq=3238520. sql:3365528
+(2018-06-06, 16:28:51) self_mysql_query is going to lock mysql=3238520, sql:.
+(2018-06-06, 16:28:51) self_mysql_query unlocked mysq=3238520. sql:3365528
+gZLConnectionTimeOut=13
+
+(2018-06-06, 16:28:52) ---------------------Read 30 byte from socket! (2018-06-06, 16:30:52) MSG---onSIGINT success.
+Killed      
+     
